@@ -1,0 +1,771 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    padding: 30px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+header h1 {
+    color: #667eea;
+    font-size: 2em;
+}
+
+.filters {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.filters input,
+.filters select {
+    padding: 10px 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    flex: 1;
+    min-width: 200px;
+}
+
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.tareas-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+.tareas-container.lista-vista {
+    display: block;
+    grid-template-columns: none;
+}
+
+.tarea-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #667eea;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.tarea-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.tarea-card.finalizado {
+    border-left-color: #28a745;
+    opacity: 0.8;
+}
+
+.tarea-card.en-proceso {
+    border-left-color: #ffc107;
+}
+
+.tarea-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+}
+
+.tarea-numero {
+    font-weight: bold;
+    color: #667eea;
+    font-size: 1.1em;
+}
+
+.estado-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.estado-badge.pendiente {
+    background: #ffc107;
+    color: #000;
+}
+
+.estado-badge.en-proceso {
+    background: #17a2b8;
+    color: white;
+}
+
+.estado-badge.finalizado {
+    background: #28a745;
+    color: white;
+}
+
+.tarea-titulo {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.tarea-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 0.9em;
+}
+
+.tarea-info-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tarea-info-item strong {
+    color: #667eea;
+}
+
+.tarea-encargado {
+    background: #e9ecef;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.tarea-acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: #667eea;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5568d3;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+}
+
+.btn-success {
+    background: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #218838;
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+}
+
+.btn-info {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-info:hover {
+    background: #138496;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 12px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 700px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    color: #667eea;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.historial-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid #667eea;
+}
+
+.historial-item-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.historial-item-info {
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.sin-delegaciones {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Estilos para modal de detalles */
+.modal-detalles {
+    max-width: 900px;
+}
+
+.detalle-seccion {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.detalle-seccion:last-child {
+    border-bottom: none;
+}
+
+.detalle-seccion h3 {
+    color: #667eea;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+.detalle-item {
+    margin-bottom: 12px;
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+.detalle-item strong {
+    color: #333;
+    margin-right: 8px;
+}
+
+.detalle-texto {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.delegacion-item {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border-left: 4px solid #17a2b8;
+}
+
+.delegacion-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+.delegacion-info {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.detalle-acciones {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+}
+
+/* Estilos para línea de tiempo tipo roadmap */
+.modal-linea-tiempo {
+    max-width: 1400px;
+    max-height: 90vh;
+    overflow-x: auto;
+}
+
+.linea-tiempo-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+.linea-tiempo-controls select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 14px;
+    flex: 1;
+}
+
+.linea-tiempo-controls select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* Roadmap horizontal */
+.roadmap-container {
+    position: relative;
+    min-height: 500px;
+    padding: 40px 20px 120px;
+    background: linear-gradient(to bottom, #f0f4ff 0%, #ffffff 50%);
+}
+
+.roadmap-tasks-area {
+    position: relative;
+    min-height: 300px;
+    margin-bottom: 100px;
+}
+
+.roadmap-task-box {
+    position: absolute;
+    width: 200px;
+    background: #e8f0fe;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.roadmap-task-box:hover {
+    transform: translateX(-50%) translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.roadmap-task-box.finalizado {
+    background: #d4edda;
+    border-left: 4px solid #28a745;
+}
+
+.roadmap-task-box.en-proceso {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+}
+
+.roadmap-task-box.pendiente {
+    background: #d1ecf1;
+    border-left: 4px solid #17a2b8;
+}
+
+.roadmap-task-connector {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 40px;
+    background: #667eea;
+}
+
+.roadmap-task-content {
+    position: relative;
+}
+
+.roadmap-task-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.roadmap-task-numero {
+    font-weight: 600;
+    color: #667eea;
+    font-size: 0.85em;
+}
+
+.roadmap-task-title {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.roadmap-task-info {
+    font-size: 0.75em;
+    color: #666;
+}
+
+/* Línea de tiempo inferior */
+.roadmap-timeline-area {
+    position: relative;
+    height: 100px;
+    margin-top: 20px;
+}
+
+.roadmap-timeline-line {
+    position: absolute;
+    bottom: 50px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: #667eea;
+    border-radius: 2px;
+}
+
+.roadmap-timeline-marker {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    text-align: center;
+    min-width: 80px;
+}
+
+.roadmap-timeline-number {
+    width: 40px;
+    height: 40px;
+    background: #e8f0fe;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-weight: 600;
+    color: #667eea;
+    font-size: 0.9em;
+}
+
+.roadmap-timeline-month {
+    font-size: 0.85em;
+    color: #666;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.roadmap-timeline-quarter {
+    font-size: 0.75em;
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.sin-tareas-timeline {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 1.1em;
+}
+
+/* Botones de cambio de vista */
+.btn-vista {
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 18px;
+    transition: all 0.2s;
+    color: #666;
+}
+
+.btn-vista:hover {
+    background: #e0e0e0;
+}
+
+.btn-vista-active {
+    background: #667eea;
+    color: white;
+}
+
+.btn-vista-active:hover {
+    background: #5568d3;
+}
+
+/* Estilos para vista de lista (tabla) */
+.tabla-tareas {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.tabla-tareas thead {
+    background: #667eea;
+    color: white;
+}
+
+.tabla-tareas th {
+    padding: 12px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tabla-tareas tbody tr {
+    border-bottom: 1px solid #e0e0e0;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.tabla-tareas tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.tabla-tareas tbody tr:last-child {
+    border-bottom: none;
+}
+
+.tabla-tareas td {
+    padding: 12px 10px;
+    font-size: 0.9em;
+    vertical-align: middle;
+}
+
+.col-numero {
+    width: 60px;
+    text-align: center;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.col-tarea {
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.col-tarea strong {
+    color: #333;
+}
+
+.col-encargado {
+    min-width: 150px;
+    color: #666;
+}
+
+.col-estado {
+    width: 120px;
+}
+
+.col-fecha {
+    width: 110px;
+    color: #666;
+    font-size: 0.85em;
+}
+
+.col-dias {
+    width: 60px;
+    text-align: center;
+    color: #666;
+}
+
+.col-acciones {
+    width: 200px;
+    white-space: nowrap;
+}
+
+.col-acciones .btn {
+    margin-right: 5px;
+}
+
+.btn-xs {
+    padding: 4px 8px;
+    font-size: 11px;
+    min-width: auto;
+}
+
+.fila-tarea.finalizado {
+    opacity: 0.85;
+}
+
+.fila-tarea.finalizado .col-tarea strong {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.fila-tarea.en-proceso {
+    background: #fffbf0;
+}
+
+.fila-tarea.pendiente {
+    background: #f0f9ff;
+}
+
+@media (max-width: 1200px) {
+    .tabla-tareas {
+        font-size: 0.85em;
+    }
+    
+    .tabla-tareas th,
+    .tabla-tareas td {
+        padding: 8px 6px;
+    }
+    
+    .col-tarea {
+        min-width: 200px;
+        max-width: 300px;
+    }
+}
+
+@media (max-width: 768px) {
+    .tareas-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .filters {
+        flex-direction: column;
+    }
+}
+

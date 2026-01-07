@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Comerciales - D&F</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 Gestor de Tareas Comerciales</h1>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn btn-info" onclick="abrirLineaTiempo()">📅 Línea de Tiempo</button>
+                <div style="display: flex; gap: 5px; background: #f0f0f0; padding: 4px; border-radius: 6px;">
+                    <button id="btnVistaTarjetas" class="btn-vista btn-vista-active" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
+                        <span>📋</span>
+                    </button>
+                    <button id="btnVistaLista" class="btn-vista" onclick="cambiarVista('lista')" title="Vista de lista">
+                        <span>📝</span>
+                    </button>
+                </div>
+                <button class="btn btn-primary" onclick="abrirModalCrear()">+ Nueva Tarea</button>
+            </div>
+        </header>
+
+        <div class="filters">
+            <input type="text" id="buscarTarea" placeholder="Buscar tarea..." onkeyup="filtrarTareas()">
+            <select id="filtroEstado" onchange="filtrarTareas()">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Finalizado">Finalizado</option>
+            </select>
+            <select id="filtroEncargado" onchange="filtrarTareas()">
+                <option value="">Todos los encargados</option>
+            </select>
+            <select id="ordenarFecha" onchange="filtrarTareas()">
+                <option value="">Ordenar por fecha</option>
+                <option value="fecha_inicio_asc">Fecha Inicio: Más antigua primero</option>
+                <option value="fecha_inicio_desc">Fecha Inicio: Más reciente primero</option>
+                <option value="fecha_fin_asc">Fecha Fin: Más antigua primero</option>
+                <option value="fecha_fin_desc">Fecha Fin: Más reciente primero</option>
+                <option value="fecha_creacion_asc">Fecha Creación: Más antigua primero</option>
+                <option value="fecha_creacion_desc">Fecha Creación: Más reciente primero</option>
+            </select>
+        </div>
+
+        <div class="tareas-container" id="tareasContainer">
+            <!-- Las tareas se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar tarea -->
+    <div id="modalTarea" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModal()">&times;</span>
+            <h2 id="modalTitulo">Nueva Tarea</h2>
+            <form id="formTarea" onsubmit="guardarTarea(event)">
+                <div class="form-group">
+                    <label># D&F:</label>
+                    <input type="text" id="numero_df" name="numero_df">
+                </div>
+                
+                <div class="form-group">
+                    <label>Actividad Predecesora:</label>
+                    <input type="text" id="actividad_predecesora" name="actividad_predecesora">
+                </div>
+                
+                <div class="form-group">
+                    <label>Asunto, Tema:</label>
+                    <input type="text" id="asunto_tema" name="asunto_tema">
+                </div>
+                
+                <div class="form-group">
+                    <label>Tarea *:</label>
+                    <textarea id="tarea" name="tarea" required rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Encargado(a) *:</label>
+                    <input type="text" id="encargado_actual" name="encargado_actual" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Inicio *:</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Fecha Fin:</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Estado:</label>
+                        <select id="estado" name="estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Finalizado">Finalizado</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Valor:</label>
+                        <input type="text" id="valor" name="valor">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Evidencia, Conclusión, Resultado, Soporte:</label>
+                    <textarea id="evidencia" name="evidencia" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Observaciones:</label>
+                    <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para delegar tarea -->
+    <div id="modalDelegar" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalDelegar()">&times;</span>
+            <h2>Delegar Tarea</h2>
+            <form id="formDelegar" onsubmit="guardarDelegacion(event)">
+                <input type="hidden" id="tarea_id_delegar" name="tarea_id">
+                
+                <div class="form-group">
+                    <label>Delegar de (Persona actual) *:</label>
+                    <input type="text" id="delegado_de" name="delegado_de" required readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Delegar a (Nueva persona) *:</label>
+                    <input type="text" id="delegado_a" name="delegado_a" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Motivo de la delegación:</label>
+                    <textarea id="motivo" name="motivo" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Observaciones:</label>
+                    <textarea id="observaciones_delegacion" name="observaciones_delegacion" rows="3"></textarea>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalDelegar()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Delegar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para ver historial de delegaciones -->
+    <div id="modalHistorial" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalHistorial()">&times;</span>
+            <h2>Historial de Delegaciones</h2>
+            <div id="historialContent">
+                <!-- El historial se cargará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para ver detalles de la tarea -->
+    <div id="modalDetalles" class="modal">
+        <div class="modal-content modal-detalles">
+            <span class="close" onclick="cerrarModalDetalles()">&times;</span>
+            <h2>Detalles de la Tarea</h2>
+            <div id="detallesContent">
+                <!-- Los detalles se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para línea de tiempo -->
+    <div id="modalLineaTiempo" class="modal">
+        <div class="modal-content modal-linea-tiempo">
+            <span class="close" onclick="cerrarLineaTiempo()">&times;</span>
+            <h2>📅 Línea de Tiempo de Tareas</h2>
+            <div class="linea-tiempo-controls">
+                <select id="filtroLineaTiempo" onchange="actualizarLineaTiempo()">
+                    <option value="fecha_creacion">Ordenar por Fecha de Creación</option>
+                    <option value="fecha_inicio">Ordenar por Fecha de Inicio</option>
+                    <option value="fecha_fin">Ordenar por Fecha de Fin</option>
+                </select>
+                <select id="filtroEstadoLinea" onchange="actualizarLineaTiempo()">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Finalizado">Finalizado</option>
+                </select>
+            </div>
+            <div id="lineaTiempoContent">
+                <!-- La línea de tiempo se cargará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
+
