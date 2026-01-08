@@ -207,6 +207,15 @@ header h1 {
     background: #218838;
 }
 
+.btn-warning {
+    background: #ffc107;
+    color: #000;
+}
+
+.btn-warning:hover {
+    background: #e0a800;
+}
+
 .btn-danger {
     background: #dc3545;
     color: white;

@@ -834,3 +834,69 @@ function actualizarLineaTiempo() {
     content.innerHTML = html;
 }
 
+// Exportar tareas a Excel
+function exportarTareas() {
+    window.location.href = '/api/tareas/exportar';
+}
+
+// Importar tareas desde Excel
+async function importarTareas(event) {
+    const archivo = event.target.files[0];
+    
+    if (!archivo) {
+        return;
+    }
+    
+    // Validar extensión
+    const extension = archivo.name.split('.').pop().toLowerCase();
+    if (extension !== 'xlsx' && extension !== 'xls') {
+        alert('Por favor, selecciona un archivo Excel (.xlsx o .xls)');
+        event.target.value = '';
+        return;
+    }
+    
+    if (!confirm(`¿Deseas importar las tareas desde "${archivo.name}"?\n\nNota: Las tareas existentes con el mismo número D&F serán actualizadas.`)) {
+        event.target.value = '';
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('archivo', archivo);
+    
+    try {
+        const response = await fetch('/api/tareas/importar', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const resultado = await response.json();
+        
+        if (response.ok) {
+            let mensaje = `✅ ${resultado.mensaje}\n\n`;
+            mensaje += `📊 Resumen:\n`;
+            mensaje += `- Tareas nuevas: ${resultado.tareas_importadas}\n`;
+            mensaje += `- Tareas actualizadas: ${resultado.tareas_actualizadas}`;
+            
+            if (resultado.errores && resultado.errores.length > 0) {
+                mensaje += `\n\n⚠️ Errores encontrados:\n`;
+                resultado.errores.forEach(error => {
+                    mensaje += `- ${error}\n`;
+                });
+            }
+            
+            alert(mensaje);
+            
+            // Recargar tareas
+            cargarTareas();
+        } else {
+            alert(`❌ Error: ${resultado.error || 'Error al importar el archivo'}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error al importar el archivo. Por favor, verifica que el archivo sea válido.');
+    }
+    
+    // Limpiar el input
+    event.target.value = '';
+}
+

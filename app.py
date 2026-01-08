@@ -1,7 +1,9 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import pandas as pd
+from io import BytesIO
 
 app = Flask(__name__)
 # Configuración de base de datos - usa variable de entorno si está disponible (para producción)
@@ -246,6 +248,168 @@ def get_delegaciones(tarea_id):
         'motivo': d.motivo,
         'observaciones_delegacion': d.observaciones_delegacion
     } for d in delegaciones])
+
+
+# API - Exportar tareas a Excel
+@app.route('/api/tareas/exportar', methods=['GET'])
+def exportar_tareas():
+    tareas = Tarea.query.all()
+    
+    # Crear DataFrame con todas las tareas
+    datos = []
+    for tarea in tareas:
+        datos.append({
+            '# D&F': tarea.numero_df or '',
+            'ACTIVIDAD PREDECESORA': tarea.actividad_predecesora or '',
+            'ASUNTO, TEMA': tarea.asunto_tema or '',
+            'TAREA': tarea.tarea or '',
+            'ENCARGADO(A)': tarea.encargado_actual or '',
+            'FECHA INICIO': tarea.fecha_inicio.strftime('%Y-%m-%d') if tarea.fecha_inicio else '',
+            'FECHA FIN': tarea.fecha_fin.strftime('%Y-%m-%d') if tarea.fecha_fin else '',
+            'ESTADO': tarea.estado or '',
+            'DÍAS': tarea.dias if tarea.dias is not None else '',
+            'VALOR': tarea.valor or '',
+            'EVIDENCIA, CONCLUSIÓN, RESULTADO, SOPORTE.': tarea.evidencia or '',
+            'OBSERVACIONES': tarea.observaciones or ''
+        })
+    
+    df = pd.DataFrame(datos)
+    
+    # Crear archivo Excel en memoria
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='Tareas')
+    
+    output.seek(0)
+    
+    # Generar nombre de archivo con fecha
+    fecha = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'Tareas_Comerciales_{fecha}.xlsx'
+    
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+# API - Importar tareas desde Excel
+@app.route('/api/tareas/importar', methods=['POST'])
+def importar_tareas():
+    if 'archivo' not in request.files:
+        return jsonify({'error': 'No se proporcionó ningún archivo'}), 400
+    
+    archivo = request.files['archivo']
+    
+    if archivo.filename == '':
+        return jsonify({'error': 'No se seleccionó ningún archivo'}), 400
+    
+    try:
+        # Leer el archivo Excel
+        df = pd.read_excel(archivo)
+        
+        # Mapear columnas (flexible con diferentes nombres)
+        columnas_mapeo = {
+            '# D&F': 'numero_df',
+            'ACTIVIDAD PREDECESORA': 'actividad_predecesora',
+            'ASUNTO, TEMA': 'asunto_tema',
+            'TAREA': 'tarea',
+            'ENCARGADO(A)': 'encargado_actual',
+            'FECHA INICIO': 'fecha_inicio',
+            'FECHA FIN': 'fecha_fin',
+            'ESTADO': 'estado',
+            'DÍAS': 'dias',
+            'VALOR': 'valor',
+            'EVIDENCIA, CONCLUSIÓN, RESULTADO, SOPORTE.': 'evidencia',
+            'OBSERVACIONES': 'observaciones'
+        }
+        
+        tareas_importadas = 0
+        tareas_actualizadas = 0
+        errores = []
+        
+        for index, row in df.iterrows():
+            try:
+                # Buscar tarea existente por número D&F o crear nueva
+                numero_df = str(row.get('# D&F', '')).strip() if pd.notna(row.get('# D&F', '')) else None
+                tarea_existente = None
+                
+                if numero_df:
+                    tarea_existente = Tarea.query.filter_by(numero_df=numero_df).first()
+                
+                # Preparar datos
+                datos_tarea = {}
+                for col_excel, campo_db in columnas_mapeo.items():
+                    if col_excel in df.columns:
+                        valor = row[col_excel]
+                        if pd.notna(valor):
+                            if campo_db in ['fecha_inicio', 'fecha_fin']:
+                                try:
+                                    if isinstance(valor, str):
+                                        datos_tarea[campo_db] = datetime.strptime(valor, '%Y-%m-%d').date()
+                                    else:
+                                        datos_tarea[campo_db] = valor.date() if hasattr(valor, 'date') else None
+                                except:
+                                    datos_tarea[campo_db] = None
+                            elif campo_db == 'dias':
+                                try:
+                                    datos_tarea[campo_db] = int(valor) if pd.notna(valor) else None
+                                except:
+                                    datos_tarea[campo_db] = None
+                            else:
+                                datos_tarea[campo_db] = str(valor).strip()
+                
+                # Validar campos obligatorios
+                if not datos_tarea.get('tarea') or not datos_tarea.get('encargado_actual'):
+                    errores.append(f'Fila {index + 2}: Faltan campos obligatorios (TAREA o ENCARGADO)')
+                    continue
+                
+                # Calcular días si hay fechas
+                if datos_tarea.get('fecha_inicio') and datos_tarea.get('fecha_fin'):
+                    dias = (datos_tarea['fecha_fin'] - datos_tarea['fecha_inicio']).days
+                    datos_tarea['dias'] = dias
+                elif datos_tarea.get('fecha_inicio') and not datos_tarea.get('dias'):
+                    datos_tarea['dias'] = (datetime.now().date() - datos_tarea['fecha_inicio']).days
+                
+                # Establecer fecha de inicio por defecto si no existe
+                if not datos_tarea.get('fecha_inicio'):
+                    datos_tarea['fecha_inicio'] = datetime.now().date()
+                
+                # Establecer estado por defecto
+                if not datos_tarea.get('estado'):
+                    datos_tarea['estado'] = 'Pendiente'
+                
+                if tarea_existente:
+                    # Actualizar tarea existente
+                    for campo, valor in datos_tarea.items():
+                        setattr(tarea_existente, campo, valor)
+                    tareas_actualizadas += 1
+                else:
+                    # Crear nueva tarea
+                    nueva_tarea = Tarea(**datos_tarea)
+                    db.session.add(nueva_tarea)
+                    tareas_importadas += 1
+                    
+            except Exception as e:
+                errores.append(f'Fila {index + 2}: {str(e)}')
+                continue
+        
+        db.session.commit()
+        
+        mensaje = f'Importación completada: {tareas_importadas} tareas nuevas, {tareas_actualizadas} actualizadas'
+        if errores:
+            mensaje += f'. {len(errores)} errores encontrados.'
+        
+        return jsonify({
+            'mensaje': mensaje,
+            'tareas_importadas': tareas_importadas,
+            'tareas_actualizadas': tareas_actualizadas,
+            'errores': errores[:10]  # Limitar a 10 errores
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'error': f'Error al procesar el archivo: {str(e)}'}), 500
 
 
 if __name__ == '__main__':

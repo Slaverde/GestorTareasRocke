@@ -10,8 +10,11 @@
     <div class="container">
         <header>
             <h1>📋 Gestor de Tareas Comerciales</h1>
-            <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-info" onclick="abrirLineaTiempo()">📅 Línea de Tiempo</button>
+                <button class="btn btn-success" onclick="exportarTareas()">📥 Exportar Excel</button>
+                <button class="btn btn-warning" onclick="document.getElementById('archivoImportar').click()">📤 Importar Excel</button>
+                <input type="file" id="archivoImportar" accept=".xlsx,.xls" style="display: none;" onchange="importarTareas(event)">
                 <div style="display: flex; gap: 5px; background: #f0f0f0; padding: 4px; border-radius: 6px;">
                     <button id="btnVistaTarjetas" class="btn-vista btn-vista-active" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
                         <span>📋</span>
