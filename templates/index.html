@@ -9,7 +9,7 @@
 <body>
     <div class="container">
         <header>
-            <h1>📋 Gestor de Tareas Comerciales</h1>
+            <h1><img src="{{ url_for('static', filename='logo_ROCKET.png') }}" alt="Rocket" style="height: 40px; vertical-align: middle; margin-right: 10px;"> Gestor de Tareas Comerciales</h1>
             <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                 <button class="btn btn-info" onclick="abrirLineaTiempo()">📅 Línea de Tiempo</button>
                 <button class="btn btn-success" onclick="exportarTareas()">📥 Exportar Excel</button>
@@ -17,7 +17,7 @@
                 <input type="file" id="archivoImportar" accept=".xlsx,.xls" style="display: none;" onchange="importarTareas(event)">
                 <div style="display: flex; gap: 5px; background: #f0f0f0; padding: 4px; border-radius: 6px;">
                     <button id="btnVistaTarjetas" class="btn-vista" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
-                        <span>📋</span>
+                        <img src="{{ url_for('static', filename='logo_ROCKET.png') }}" alt="Tarjetas" style="height: 18px; width: auto;">
                     </button>
                     <button id="btnVistaLista" class="btn-vista btn-vista-active" onclick="cambiarVista('lista')" title="Vista de lista">
                         <span>📝</span>

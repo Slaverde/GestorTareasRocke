@@ -223,7 +223,7 @@ function renderizarVistaListaFiltrada(tareasFiltradas) {
         html += `<button class="btn btn-primary btn-xs" onclick="editarTarea(${tarea.id})" title="Editar">✏️</button> `;
         html += `<button class="btn btn-success btn-xs" onclick="abrirModalDelegar(${tarea.id})" title="Delegar">👤</button> `;
         if (tarea.delegaciones && tarea.delegaciones.length > 0) {
-            html += `<button class="btn btn-info btn-xs" onclick="verHistorial(${tarea.id})" title="Historial">📋</button> `;
+            html += `<button class="btn btn-info btn-xs" onclick="verHistorial(${tarea.id})" title="Historial"><img src="/static/logo_ROCKET.png" alt="Historial" style="height: 14px; width: auto;"></button> `;
         }
         html += `<button class="btn btn-danger btn-xs" onclick="eliminarTarea(${tarea.id})" title="Eliminar">🗑️</button>`;
         html += `</td>`;
