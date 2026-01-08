@@ -39,6 +39,14 @@ class Tarea(db.Model):
         'Delegacion', backref='tarea', lazy=True, cascade='all, delete-orphan')
 
 
+class Encargado(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    nombre = db.Column(db.String(200), nullable=False, unique=True)
+    email = db.Column(db.String(200))
+    activo = db.Column(db.Boolean, default=True)
+    fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class Delegacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     tarea_id = db.Column(db.Integer, db.ForeignKey('tarea.id'), nullable=False)

@@ -1,10 +1,13 @@
 let tareas = [];
 let tareaEditando = null;
 let vistaActual = 'tarjetas'; // 'tarjetas' o 'lista'
+let encargados = [];
+let encargadoEditando = null;
 
-// Cargar tareas al iniciar
+// Cargar tareas y encargados al iniciar
 document.addEventListener('DOMContentLoaded', function () {
     cargarTareas();
+    cargarEncargados();
 });
 
 // Cargar todas las tareas
@@ -229,10 +232,52 @@ function renderizarVistaListaFiltrada(tareasFiltradas) {
     container.innerHTML = html;
 }
 
+// Cargar encargados
+async function cargarEncargados() {
+    try {
+        const response = await fetch('/api/encargados');
+        encargados = await response.json();
+        actualizarSelectEncargados();
+        actualizarFiltros();
+    } catch (error) {
+        console.error('Error al cargar encargados:', error);
+    }
+}
+
+// Actualizar select de encargados en formularios
+function actualizarSelectEncargados() {
+    const selectTarea = document.getElementById('encargado_actual');
+    const selectDelegar = document.getElementById('delegado_a');
+    
+    if (selectTarea) {
+        const valorActual = selectTarea.value;
+        selectTarea.innerHTML = '<option value="">Seleccione un encargado</option>';
+        encargados.forEach(encargado => {
+            const option = document.createElement('option');
+            option.value = encargado.nombre;
+            option.textContent = encargado.nombre;
+            selectTarea.appendChild(option);
+        });
+        if (valorActual) selectTarea.value = valorActual;
+    }
+    
+    if (selectDelegar) {
+        const valorActual = selectDelegar.value;
+        selectDelegar.innerHTML = '';
+        encargados.forEach(encargado => {
+            const option = document.createElement('option');
+            option.value = encargado.nombre;
+            option.textContent = encargado.nombre;
+            selectDelegar.appendChild(option);
+        });
+        if (valorActual) selectDelegar.value = valorActual;
+    }
+}
+
 // Actualizar filtros de encargados
 function actualizarFiltros() {
     const select = document.getElementById('filtroEncargado');
-    const encargados = [...new Set(tareas.map(t => t.encargado_actual).filter(Boolean))];
+    if (!select) return;
 
     // Mantener el valor seleccionado
     const valorActual = select.value;
@@ -242,8 +287,8 @@ function actualizarFiltros() {
 
     encargados.forEach(encargado => {
         const option = document.createElement('option');
-        option.value = encargado;
-        option.textContent = encargado;
+        option.value = encargado.nombre;
+        option.textContent = encargado.nombre;
         select.appendChild(option);
     });
 
@@ -257,6 +302,7 @@ function abrirModalCrear() {
     document.getElementById('modalTitulo').textContent = 'Nueva Tarea';
     document.getElementById('formTarea').reset();
     document.getElementById('fecha_inicio').value = new Date().toISOString().split('T')[0];
+    actualizarSelectEncargados(); // Asegurar que los encargados estén cargados
     document.getElementById('modalTarea').style.display = 'block';
 }
 
@@ -338,6 +384,7 @@ function editarTarea(id) {
     document.getElementById('actividad_predecesora').value = tarea.actividad_predecesora || '';
     document.getElementById('asunto_tema').value = tarea.asunto_tema || '';
     document.getElementById('tarea').value = tarea.tarea || '';
+    actualizarSelectEncargados(); // Asegurar que los encargados estén cargados
     document.getElementById('encargado_actual').value = tarea.encargado_actual || '';
     document.getElementById('fecha_inicio').value = tarea.fecha_inicio || '';
     document.getElementById('fecha_fin').value = tarea.fecha_fin || '';
@@ -377,6 +424,7 @@ async function abrirModalDelegar(id) {
 
     document.getElementById('tarea_id_delegar').value = id;
     document.getElementById('delegado_de').value = tarea.encargado_actual;
+    actualizarSelectEncargados(); // Asegurar que los encargados estén cargados
     document.getElementById('delegado_a').value = '';
     document.getElementById('motivo').value = '';
     document.getElementById('observaciones_delegacion').value = '';
@@ -600,6 +648,9 @@ window.onclick = function (event) {
     const modalDelegar = document.getElementById('modalDelegar');
     const modalHistorial = document.getElementById('modalHistorial');
     const modalDetalles = document.getElementById('modalDetalles');
+    const modalLineaTiempo = document.getElementById('modalLineaTiempo');
+    const modalEncargados = document.getElementById('modalEncargados');
+    const modalCrearEncargado = document.getElementById('modalCrearEncargado');
 
     if (event.target === modalTarea) {
         cerrarModal();
@@ -615,6 +666,12 @@ window.onclick = function (event) {
     }
     if (event.target === modalLineaTiempo) {
         cerrarLineaTiempo();
+    }
+    if (event.target === modalEncargados) {
+        cerrarModalEncargados();
+    }
+    if (event.target === modalCrearEncargado) {
+        cerrarModalCrearEncargado();
     }
 }
 

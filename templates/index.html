@@ -82,7 +82,12 @@
                 
                 <div class="form-group">
                     <label>Encargado(a) *:</label>
-                    <input type="text" id="encargado_actual" name="encargado_actual" required>
+                    <div style="display: flex; gap: 5px;">
+                        <select id="encargado_actual" name="encargado_actual" required style="flex: 1;">
+                            <option value="">Seleccione un encargado</option>
+                        </select>
+                        <button type="button" class="btn btn-info btn-sm" onclick="abrirModalEncargados()" title="Gestionar encargados">👥</button>
+                    </div>
                 </div>
                 
                 <div class="form-row">
@@ -146,7 +151,9 @@
                 
                 <div class="form-group">
                     <label>Delegar a (Nueva persona) *:</label>
-                    <input type="text" id="delegado_a" name="delegado_a" required>
+                    <select id="delegado_a" name="delegado_a" required>
+                        <option value="">Seleccione un encargado</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
@@ -186,6 +193,42 @@
             <div id="detallesContent">
                 <!-- Los detalles se cargarán aquí -->
             </div>
+        </div>
+    </div>
+
+    <!-- Modal para gestionar encargados -->
+    <div id="modalEncargados" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalEncargados()">&times;</span>
+            <h2>👥 Gestionar Encargados</h2>
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="abrirModalCrearEncargado()">+ Nuevo Encargado</button>
+            </div>
+            <div id="listaEncargados">
+                <!-- Los encargados se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para crear/editar encargado -->
+    <div id="modalCrearEncargado" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="cerrarModalCrearEncargado()">&times;</span>
+            <h2 id="modalEncargadoTitulo">Nuevo Encargado</h2>
+            <form id="formEncargado" onsubmit="guardarEncargado(event)">
+                <div class="form-group">
+                    <label>Nombre *:</label>
+                    <input type="text" id="encargado_nombre" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="encargado_email" name="email">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCrearEncargado()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
         </div>
     </div>
 
