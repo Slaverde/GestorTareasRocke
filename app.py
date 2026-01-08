@@ -70,6 +70,73 @@ with app.app_context():
 def index():
     return render_template('index.html')
 
+# API - Encargados
+@app.route('/api/encargados', methods=['GET'])
+def get_encargados():
+    encargados = Encargado.query.filter_by(activo=True).order_by(Encargado.nombre).all()
+    return jsonify([{
+        'id': e.id,
+        'nombre': e.nombre,
+        'email': e.email
+    } for e in encargados])
+
+@app.route('/api/encargados', methods=['POST'])
+def crear_encargado():
+    data = request.json
+    nombre = data.get('nombre', '').strip()
+    
+    if not nombre:
+        return jsonify({'error': 'El nombre es obligatorio'}), 400
+    
+    # Verificar si ya existe
+    existe = Encargado.query.filter_by(nombre=nombre).first()
+    if existe:
+        if not existe.activo:
+            # Reactivar encargado inactivo
+            existe.activo = True
+            existe.email = data.get('email', '')
+            db.session.commit()
+            return jsonify({'id': existe.id, 'mensaje': 'Encargado reactivado exitosamente'}), 200
+        return jsonify({'error': 'Ya existe un encargado con ese nombre'}), 400
+    
+    encargado = Encargado(
+        nombre=nombre,
+        email=data.get('email', '')
+    )
+    
+    db.session.add(encargado)
+    db.session.commit()
+    
+    return jsonify({'id': encargado.id, 'mensaje': 'Encargado creado exitosamente'}), 201
+
+@app.route('/api/encargados/<int:encargado_id>', methods=['PUT'])
+def actualizar_encargado(encargado_id):
+    encargado = Encargado.query.get_or_404(encargado_id)
+    data = request.json
+    
+    if 'nombre' in data:
+        nuevo_nombre = data['nombre'].strip()
+        if nuevo_nombre != encargado.nombre:
+            # Verificar si el nuevo nombre ya existe
+            existe = Encargado.query.filter_by(nombre=nuevo_nombre).first()
+            if existe and existe.id != encargado_id:
+                return jsonify({'error': 'Ya existe un encargado con ese nombre'}), 400
+            encargado.nombre = nuevo_nombre
+    
+    if 'email' in data:
+        encargado.email = data['email']
+    
+    db.session.commit()
+    return jsonify({'mensaje': 'Encargado actualizado exitosamente'})
+
+@app.route('/api/encargados/<int:encargado_id>', methods=['DELETE'])
+def eliminar_encargado(encargado_id):
+    encargado = Encargado.query.get_or_404(encargado_id)
+    # No eliminar físicamente, solo desactivar
+    encargado.activo = False
+    db.session.commit()
+    return jsonify({'mensaje': 'Encargado eliminado exitosamente'})
+
 # API - Obtener todas las tareas
 
 
