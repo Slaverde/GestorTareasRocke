@@ -957,3 +957,154 @@ async function importarTareas(event) {
     event.target.value = '';
 }
 
+// Funciones para gestionar encargados
+function abrirModalEncargados() {
+    cargarListaEncargados();
+    document.getElementById('modalEncargados').style.display = 'block';
+}
+
+function cerrarModalEncargados() {
+    document.getElementById('modalEncargados').style.display = 'none';
+}
+
+async function cargarListaEncargados() {
+    try {
+        const response = await fetch('/api/encargados');
+        const encargadosLista = await response.json();
+        
+        const container = document.getElementById('listaEncargados');
+        
+        if (encargadosLista.length === 0) {
+            container.innerHTML = '<p style="text-align: center; padding: 20px; color: #999;">No hay encargados registrados</p>';
+            return;
+        }
+        
+        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+        encargadosLista.forEach(encargado => {
+            html += `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+                    <div>
+                        <strong>${encargado.nombre}</strong>
+                        ${encargado.email ? `<div style="font-size: 0.9em; color: #666;">${encargado.email}</div>` : ''}
+                    </div>
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-primary btn-sm" onclick="editarEncargado(${encargado.id})">Editar</button>
+                        <button class="btn btn-danger btn-sm" onclick="eliminarEncargado(${encargado.id})">Eliminar</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error al cargar lista de encargados:', error);
+        alert('Error al cargar la lista de encargados');
+    }
+}
+
+function abrirModalCrearEncargado() {
+    encargadoEditando = null;
+    document.getElementById('modalEncargadoTitulo').textContent = 'Nuevo Encargado';
+    document.getElementById('formEncargado').reset();
+    document.getElementById('modalCrearEncargado').style.display = 'block';
+}
+
+function cerrarModalCrearEncargado() {
+    document.getElementById('modalCrearEncargado').style.display = 'none';
+    encargadoEditando = null;
+}
+
+async function editarEncargado(id) {
+    const encargado = encargados.find(e => e.id === id);
+    if (!encargado) {
+        // Recargar encargados si no está en la lista
+        await cargarEncargados();
+        const encargadoActualizado = encargados.find(e => e.id === id);
+        if (!encargadoActualizado) {
+            alert('Encargado no encontrado');
+            return;
+        }
+        encargadoEditando = id;
+        document.getElementById('modalEncargadoTitulo').textContent = 'Editar Encargado';
+        document.getElementById('encargado_nombre').value = encargadoActualizado.nombre;
+        document.getElementById('encargado_email').value = encargadoActualizado.email || '';
+        document.getElementById('modalCrearEncargado').style.display = 'block';
+        return;
+    }
+    
+    encargadoEditando = id;
+    document.getElementById('modalEncargadoTitulo').textContent = 'Editar Encargado';
+    document.getElementById('encargado_nombre').value = encargado.nombre;
+    document.getElementById('encargado_email').value = encargado.email || '';
+    document.getElementById('modalCrearEncargado').style.display = 'block';
+}
+
+async function guardarEncargado(event) {
+    event.preventDefault();
+    
+    const nombre = document.getElementById('encargado_nombre').value.trim();
+    const email = document.getElementById('encargado_email').value.trim();
+    
+    if (!nombre) {
+        alert('El nombre es obligatorio');
+        return;
+    }
+    
+    const data = {
+        nombre: nombre,
+        email: email
+    };
+    
+    try {
+        let response;
+        if (encargadoEditando) {
+            response = await fetch(`/api/encargados/${encargadoEditando}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } else {
+            response = await fetch('/api/encargados', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        }
+        
+        const resultado = await response.json();
+        
+        if (response.ok) {
+            alert(encargadoEditando ? 'Encargado actualizado exitosamente' : 'Encargado creado exitosamente');
+            cerrarModalCrearEncargado();
+            await cargarEncargados();
+            cargarListaEncargados();
+        } else {
+            alert(`Error: ${resultado.error || 'Error al guardar el encargado'}`);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al guardar el encargado');
+    }
+}
+
+async function eliminarEncargado(id) {
+    if (!confirm('¿Está seguro de eliminar este encargado?')) return;
+    
+    try {
+        const response = await fetch(`/api/encargados/${id}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            alert('Encargado eliminado exitosamente');
+            await cargarEncargados();
+            cargarListaEncargados();
+        } else {
+            throw new Error('Error al eliminar');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el encargado');
+    }
+}
+
