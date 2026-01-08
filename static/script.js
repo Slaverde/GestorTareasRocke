@@ -1,11 +1,13 @@
 let tareas = [];
 let tareaEditando = null;
-let vistaActual = 'tarjetas'; // 'tarjetas' o 'lista'
+let vistaActual = 'lista'; // 'tarjetas' o 'lista' - Vista predeterminada: lista
 let encargados = [];
 let encargadoEditando = null;
 
 // Cargar tareas y encargados al iniciar
 document.addEventListener('DOMContentLoaded', function () {
+    // Configurar vista de lista como predeterminada
+    cambiarVista('lista');
     cargarTareas();
     cargarEncargados();
 });
@@ -534,7 +536,7 @@ function verDetallesTarea(id) {
         <div class="detalle-seccion">
             <h3>Información General</h3>
             <div class="detalle-item">
-                <strong># D&F:</strong> ${tarea.numero_df || 'Sin número'}
+                <strong>Número de Tarea:</strong> ${tarea.numero_df || 'Sin número'}
             </div>
             <div class="detalle-item">
                 <strong>Estado:</strong> <span class="estado-badge ${tarea.estado.toLowerCase().replace(' ', '-')}">${tarea.estado}</span>
@@ -912,7 +914,7 @@ async function importarTareas(event) {
         return;
     }
     
-    if (!confirm(`¿Deseas importar las tareas desde "${archivo.name}"?\n\nNota: Las tareas existentes con el mismo número D&F serán actualizadas.`)) {
+        if (!confirm(`¿Deseas importar las tareas desde "${archivo.name}"?\n\nNota: Las tareas existentes con el mismo número de tarea serán actualizadas.`)) {
         event.target.value = '';
         return;
     }

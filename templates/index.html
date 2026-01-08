@@ -16,10 +16,10 @@
                 <button class="btn btn-warning" onclick="document.getElementById('archivoImportar').click()">📤 Importar Excel</button>
                 <input type="file" id="archivoImportar" accept=".xlsx,.xls" style="display: none;" onchange="importarTareas(event)">
                 <div style="display: flex; gap: 5px; background: #f0f0f0; padding: 4px; border-radius: 6px;">
-                    <button id="btnVistaTarjetas" class="btn-vista btn-vista-active" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
+                    <button id="btnVistaTarjetas" class="btn-vista" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
                         <span>📋</span>
                     </button>
-                    <button id="btnVistaLista" class="btn-vista" onclick="cambiarVista('lista')" title="Vista de lista">
+                    <button id="btnVistaLista" class="btn-vista btn-vista-active" onclick="cambiarVista('lista')" title="Vista de lista">
                         <span>📝</span>
                     </button>
                 </div>
@@ -61,7 +61,7 @@
             <h2 id="modalTitulo">Nueva Tarea</h2>
             <form id="formTarea" onsubmit="guardarTarea(event)">
                 <div class="form-group">
-                    <label># D&F:</label>
+                    <label>Número de Tarea:</label>
                     <input type="text" id="numero_df" name="numero_df">
                 </div>
                 

@@ -334,7 +334,7 @@ def exportar_tareas():
     datos = []
     for tarea in tareas:
         datos.append({
-            '# D&F': tarea.numero_df or '',
+            'Número de Tarea': tarea.numero_df or '',
             'ACTIVIDAD PREDECESORA': tarea.actividad_predecesora or '',
             'ASUNTO, TEMA': tarea.asunto_tema or '',
             'TAREA': tarea.tarea or '',
@@ -386,7 +386,8 @@ def importar_tareas():
         
         # Mapear columnas (flexible con diferentes nombres)
         columnas_mapeo = {
-            '# D&F': 'numero_df',
+            'Número de Tarea': 'numero_df',
+            '# D&F': 'numero_df',  # Compatibilidad con formato antiguo
             'ACTIVIDAD PREDECESORA': 'actividad_predecesora',
             'ASUNTO, TEMA': 'asunto_tema',
             'TAREA': 'tarea',
@@ -406,8 +407,11 @@ def importar_tareas():
         
         for index, row in df.iterrows():
             try:
-                # Buscar tarea existente por número D&F o crear nueva
-                numero_df = str(row.get('# D&F', '')).strip() if pd.notna(row.get('# D&F', '')) else None
+                # Buscar tarea existente por número de tarea o crear nueva
+                numero_df = str(row.get('Número de Tarea', '')).strip() if pd.notna(row.get('Número de Tarea', '')) else None
+                # También aceptar el formato antiguo '# D&F' para compatibilidad
+                if not numero_df:
+                    numero_df = str(row.get('# D&F', '')).strip() if pd.notna(row.get('# D&F', '')) else None
                 tarea_existente = None
                 
                 if numero_df:
