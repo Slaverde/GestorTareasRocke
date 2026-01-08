@@ -29,7 +29,6 @@ class Tarea(db.Model):
     fecha_fin = db.Column(db.Date)
     estado = db.Column(db.String(50), default='Pendiente')
     dias = db.Column(db.Integer)
-    valor = db.Column(db.String(100))
     evidencia = db.Column(db.Text)
     observaciones = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
@@ -154,7 +153,6 @@ def get_tareas():
         'fecha_fin': t.fecha_fin.strftime('%Y-%m-%d') if t.fecha_fin else None,
         'estado': t.estado,
         'dias': t.dias,
-        'valor': t.valor,
         'evidencia': t.evidencia,
         'observaciones': t.observaciones,
         'fecha_creacion': t.fecha_creacion.strftime('%Y-%m-%d %H:%M:%S') if t.fecha_creacion else None,
@@ -202,7 +200,6 @@ def crear_tarea():
         fecha_fin=fecha_fin,
         estado=data.get('estado', 'Pendiente'),
         dias=dias,
-        valor=data.get('valor'),
         evidencia=data.get('evidencia'),
         observaciones=data.get('observaciones')
     )
@@ -238,8 +235,6 @@ def actualizar_tarea(tarea_id):
             data['fecha_fin'], '%Y-%m-%d').date() if data['fecha_fin'] else None
     if 'estado' in data:
         tarea.estado = data['estado']
-    if 'valor' in data:
-        tarea.valor = data['valor']
     if 'evidencia' in data:
         tarea.evidencia = data['evidencia']
     if 'observaciones' in data:
@@ -343,7 +338,6 @@ def exportar_tareas():
             'FECHA FIN': tarea.fecha_fin.strftime('%Y-%m-%d') if tarea.fecha_fin else '',
             'ESTADO': tarea.estado or '',
             'DÍAS': tarea.dias if tarea.dias is not None else '',
-            'VALOR': tarea.valor or '',
             'EVIDENCIA, CONCLUSIÓN, RESULTADO, SOPORTE.': tarea.evidencia or '',
             'OBSERVACIONES': tarea.observaciones or ''
         })
@@ -396,7 +390,6 @@ def importar_tareas():
             'FECHA FIN': 'fecha_fin',
             'ESTADO': 'estado',
             'DÍAS': 'dias',
-            'VALOR': 'valor',
             'EVIDENCIA, CONCLUSIÓN, RESULTADO, SOPORTE.': 'evidencia',
             'OBSERVACIONES': 'observaciones'
         }

@@ -83,7 +83,6 @@ function crearCardTarea(tarea) {
                 <strong>Fin:</strong> ${fechaFin}
             </div>
             ${tarea.dias !== null ? `<div class="tarea-info-item"><strong>Días:</strong> ${tarea.dias}</div>` : ''}
-            ${tarea.valor ? `<div class="tarea-info-item"><strong>Valor:</strong> ${tarea.valor}</div>` : ''}
         </div>
         <div class="tarea-encargado">
             👤 Encargado: ${tarea.encargado_actual}
@@ -327,7 +326,6 @@ async function guardarTarea(event) {
         fecha_inicio: document.getElementById('fecha_inicio').value,
         fecha_fin: document.getElementById('fecha_fin').value || null,
         estado: document.getElementById('estado').value,
-        valor: document.getElementById('valor').value,
         evidencia: document.getElementById('evidencia').value,
         observaciones: document.getElementById('observaciones').value
     };
@@ -391,7 +389,6 @@ function editarTarea(id) {
     document.getElementById('fecha_inicio').value = tarea.fecha_inicio || '';
     document.getElementById('fecha_fin').value = tarea.fecha_fin || '';
     document.getElementById('estado').value = tarea.estado || 'Pendiente';
-    document.getElementById('valor').value = tarea.valor || '';
     document.getElementById('evidencia').value = tarea.evidencia || '';
     document.getElementById('observaciones').value = tarea.observaciones || '';
 
@@ -580,15 +577,6 @@ function verDetallesTarea(id) {
                 <strong>Fecha de Creación:</strong> ${fechaCreacion}
             </div>
         </div>
-        
-        ${tarea.valor ? `
-        <div class="detalle-seccion">
-            <h3>Valor</h3>
-            <div class="detalle-item">
-                ${tarea.valor}
-            </div>
-        </div>
-        ` : ''}
         
         ${tarea.evidencia ? `
         <div class="detalle-seccion">

@@ -62,22 +62,22 @@
             <form id="formTarea" onsubmit="guardarTarea(event)">
                 <div class="form-group">
                     <label>Número de Tarea:</label>
-                    <input type="text" id="numero_df" name="numero_df">
+                    <input type="text" id="numero_df" name="numero_df" placeholder="Ej: TAR-001">
                 </div>
                 
                 <div class="form-group">
                     <label>Actividad Predecesora:</label>
-                    <input type="text" id="actividad_predecesora" name="actividad_predecesora">
+                    <input type="text" id="actividad_predecesora" name="actividad_predecesora" placeholder="Ej: Revisión de documentos">
                 </div>
                 
                 <div class="form-group">
                     <label>Asunto, Tema:</label>
-                    <input type="text" id="asunto_tema" name="asunto_tema">
+                    <input type="text" id="asunto_tema" name="asunto_tema" placeholder="Ej: Reunión con cliente">
                 </div>
                 
                 <div class="form-group">
                     <label>Tarea *:</label>
-                    <textarea id="tarea" name="tarea" required rows="3"></textarea>
+                    <textarea id="tarea" name="tarea" required rows="3" placeholder="Describe la tarea a realizar..."></textarea>
                 </div>
                 
                 <div class="form-group">
@@ -102,30 +102,23 @@
                     </div>
                 </div>
                 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Estado:</label>
-                        <select id="estado" name="estado">
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="En Proceso">En Proceso</option>
-                            <option value="Finalizado">Finalizado</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Valor:</label>
-                        <input type="text" id="valor" name="valor">
-                    </div>
+                <div class="form-group">
+                    <label>Estado:</label>
+                    <select id="estado" name="estado">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En Proceso">En Proceso</option>
+                        <option value="Finalizado">Finalizado</option>
+                    </select>
                 </div>
                 
                 <div class="form-group">
                     <label>Evidencia, Conclusión, Resultado, Soporte:</label>
-                    <textarea id="evidencia" name="evidencia" rows="3"></textarea>
+                    <textarea id="evidencia" name="evidencia" rows="3" placeholder="Agrega enlaces, archivos o referencias de evidencia..."></textarea>
                 </div>
                 
                 <div class="form-group">
                     <label>Observaciones:</label>
-                    <textarea id="observaciones" name="observaciones" rows="3"></textarea>
+                    <textarea id="observaciones" name="observaciones" rows="3" placeholder="Notas adicionales o comentarios sobre la tarea..."></textarea>
                 </div>
                 
                 <div class="form-actions">
