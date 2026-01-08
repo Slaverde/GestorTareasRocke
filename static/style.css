@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #ffffff;
+    background: #7C3AED;
     min-height: 100vh;
     padding: 20px;
     color: #333;
@@ -17,7 +17,7 @@ body {
     margin: 0 auto;
     background: white;
     border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     padding: 30px;
     border: 1px solid #f3f4f6;
 }
@@ -198,12 +198,12 @@ header h1 img {
 }
 
 .btn-primary {
-    background: #7C3AED;
+    background: #F97316;
     color: white;
 }
 
 .btn-primary:hover {
-    background: #6D28D9;
+    background: #EA580C;
 }
 
 .btn-secondary {
@@ -216,12 +216,12 @@ header h1 img {
 }
 
 .btn-success {
-    background: #28a745;
+    background: #F97316;
     color: white;
 }
 
 .btn-success:hover {
-    background: #218838;
+    background: #EA580C;
 }
 
 .btn-warning {
@@ -234,21 +234,21 @@ header h1 img {
 }
 
 .btn-danger {
-    background: #dc3545;
+    background: #F97316;
     color: white;
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: #EA580C;
 }
 
 .btn-info {
-    background: #7C3AED;
+    background: #F97316;
     color: white;
 }
 
 .btn-info:hover {
-    background: #6D28D9;
+    background: #EA580C;
 }
 
 .btn-sm {
@@ -659,13 +659,13 @@ header h1 img {
 }
 
 .btn-vista-active {
-    background: #7C3AED;
+    background: #F97316;
     color: white;
-    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.3);
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
 }
 
 .btn-vista-active:hover {
-    background: #6D28D9;
+    background: #EA580C;
 }
 
 .btn-vista-active img {
@@ -683,9 +683,9 @@ header h1 img {
 }
 
 .tabla-tareas thead {
-    background: #7C3AED;
+    background: #F97316;
     color: white;
-    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
 }
 
 .tabla-tareas th {
