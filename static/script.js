@@ -82,7 +82,6 @@ function crearCardTarea(tarea) {
             <div class="tarea-info-item">
                 <strong>Fin:</strong> ${fechaFin}
             </div>
-            ${tarea.dias !== null ? `<div class="tarea-info-item"><strong>Días:</strong> ${tarea.dias}</div>` : ''}
         </div>
         <div class="tarea-encargado">
             👤 Encargado: ${tarea.encargado_actual}
@@ -199,7 +198,6 @@ function renderizarVistaListaFiltrada(tareasFiltradas) {
     html += '<th>Estado</th>';
     html += '<th>Fecha Inicio</th>';
     html += '<th>Fecha Fin</th>';
-    html += '<th>Días</th>';
     html += '<th>Acciones</th>';
     html += '</tr></thead>';
     html += '<tbody>';
@@ -216,7 +214,6 @@ function renderizarVistaListaFiltrada(tareasFiltradas) {
         html += `<td class="col-estado"><span class="estado-badge ${estadoClass}">${tarea.estado}</span></td>`;
         html += `<td class="col-fecha">${fechaInicio}</td>`;
         html += `<td class="col-fecha">${fechaFin}</td>`;
-        html += `<td class="col-dias">${tarea.dias !== null ? tarea.dias : '-'}</td>`;
         html += `<td class="col-acciones" onclick="event.stopPropagation();">`;
         html += `<button class="btn btn-primary btn-xs" onclick="verDetallesTarea(${tarea.id})" title="Ver detalles">👁️</button> `;
         html += `<button class="btn btn-primary btn-xs" onclick="editarTarea(${tarea.id})" title="Editar">✏️</button> `;
@@ -568,11 +565,6 @@ function verDetallesTarea(id) {
             <div class="detalle-item">
                 <strong>Fecha de Fin:</strong> ${fechaFin}
             </div>
-            ${tarea.dias !== null ? `
-            <div class="detalle-item">
-                <strong>Días:</strong> ${tarea.dias} día(s)
-            </div>
-            ` : ''}
             <div class="detalle-item">
                 <strong>Fecha de Creación:</strong> ${fechaCreacion}
             </div>
