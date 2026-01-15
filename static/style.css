@@ -28,11 +28,11 @@ header {
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #6c757d;
+    border-bottom: 2px solid #495057;
 }
 
 header h1 {
-    color: #6c757d;
+    color: #495057;
     font-size: 2em;
     display: flex;
     align-items: center;
@@ -205,23 +205,29 @@ header h1 img {
     display: inline-block;
 }
 
-.btn-primary {
-    background: #6c757d;
+/* Botones principales del header - Gris oscuro */
+header .btn-primary,
+header .btn-success,
+header .btn-info,
+header .btn-warning {
+    background: #495057;
     color: white;
 }
 
-.btn-primary:hover {
-    background: #5a6268;
+header .btn-primary:hover,
+header .btn-success:hover,
+header .btn-info:hover,
+header .btn-warning:hover {
+    background: #343a40;
 }
 
-.btn-primary.btn-xs,
-.btn-primary.btn-sm {
+/* Resto de botones - Morado */
+.btn-primary {
     background: #4B0082;
     color: white;
 }
 
-.btn-primary.btn-xs:hover,
-.btn-primary.btn-sm:hover {
+.btn-primary:hover {
     background: #5C2599;
     border-bottom: 2px solid #FF6600;
 }
@@ -236,85 +242,41 @@ header h1 img {
 }
 
 .btn-success {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-success:hover {
-    background: #5a6268;
-}
-
-.btn-success.btn-xs,
-.btn-success.btn-sm {
     background: #4B0082;
     color: white;
 }
 
-.btn-success.btn-xs:hover,
-.btn-success.btn-sm:hover {
+.btn-success:hover {
     background: #5C2599;
     border-bottom: 2px solid #FF6600;
 }
 
 .btn-warning {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-warning:hover {
-    background: #5a6268;
-}
-
-.btn-warning.btn-xs,
-.btn-warning.btn-sm {
     background: #4B0082;
     color: white;
 }
 
-.btn-warning.btn-xs:hover,
-.btn-warning.btn-sm:hover {
+.btn-warning:hover {
     background: #5C2599;
     border-bottom: 2px solid #FF6600;
 }
 
 .btn-danger {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-danger:hover {
-    background: #5a6268;
-}
-
-.btn-danger.btn-xs,
-.btn-danger.btn-sm {
     background: #4B0082;
     color: white;
 }
 
-.btn-danger.btn-xs:hover,
-.btn-danger.btn-sm:hover {
+.btn-danger:hover {
     background: #5C2599;
     border-bottom: 2px solid #FF6600;
 }
 
 .btn-info {
-    background: #6c757d;
-    color: white;
-}
-
-.btn-info:hover {
-    background: #5a6268;
-}
-
-.btn-info.btn-xs,
-.btn-info.btn-sm {
     background: #4B0082;
     color: white;
 }
 
-.btn-info.btn-xs:hover,
-.btn-info.btn-sm:hover {
+.btn-info:hover {
     background: #5C2599;
     border-bottom: 2px solid #FF6600;
 }
@@ -798,9 +760,9 @@ header h1 img {
 }
 
 .tabla-tareas thead {
-    background: #4B0082;
+    background: #495057;
     color: white;
-    box-shadow: 0 1px 2px rgba(75, 0, 130, 0.1);
+    box-shadow: 0 1px 2px rgba(73, 80, 87, 0.2);
 }
 
 .tabla-tareas th {
