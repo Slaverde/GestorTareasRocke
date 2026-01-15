@@ -6,10 +6,10 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #7C3AED;
+    background: #5C2599;
     min-height: 100vh;
     padding: 20px;
-    color: #333;
+    color: #2C2C2C;
 }
 
 .container {
@@ -32,21 +32,17 @@ header {
 }
 
 header h1 {
-    color: #7C3AED;
+    color: #4B0082;
     font-size: 2em;
     display: flex;
     align-items: center;
 }
 
 header h1 img {
-    filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.2));
+    filter: drop-shadow(0 2px 4px rgba(92, 37, 153, 0.2));
     height: 40px;
     width: auto;
     margin-right: 10px;
-}
-
-header h1 img {
-    filter: drop-shadow(0 2px 4px rgba(124, 58, 237, 0.2));
 }
 
 .filters {
@@ -69,7 +65,7 @@ header h1 img {
 .filters input:focus,
 .filters select:focus {
     outline: none;
-    border-color: #7C3AED;
+    border-color: #5C2599;
 }
 
 .tareas-container {
@@ -87,7 +83,7 @@ header h1 img {
     background: #ffffff;
     border-radius: 12px;
     padding: 20px;
-    border-left: 4px solid #7C3AED;
+    border-left: 4px solid #5C2599;
     border: 1px solid #e5e7eb;
     transition: transform 0.2s, box-shadow 0.2s;
     position: relative;
@@ -105,7 +101,7 @@ header h1 img {
 }
 
 .tarea-card.en-proceso {
-    border-left-color: #F97316;
+    border-left-color: #FF6600;
 }
 
 .tarea-header {
@@ -117,7 +113,7 @@ header h1 img {
 
 .tarea-numero {
     font-weight: bold;
-    color: #7C3AED;
+    color: #5C2599;
     font-size: 1.1em;
 }
 
@@ -148,7 +144,7 @@ header h1 img {
     font-size: 1.1em;
     font-weight: 600;
     margin-bottom: 10px;
-    color: #333;
+    color: #2C2C2C;
 }
 
 .tarea-info {
@@ -166,7 +162,7 @@ header h1 img {
 }
 
 .tarea-info-item strong {
-    color: #7C3AED;
+    color: #5C2599;
 }
 
 .tarea-encargado {
@@ -198,12 +194,12 @@ header h1 img {
 }
 
 .btn-primary {
-    background: #F97316;
+    background: #FF6600;
     color: white;
 }
 
 .btn-primary:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-secondary {
@@ -216,39 +212,39 @@ header h1 img {
 }
 
 .btn-success {
-    background: #F97316;
+    background: #FF6600;
     color: white;
 }
 
 .btn-success:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-warning {
-    background: #F97316;
+    background: #FF6600;
     color: white;
 }
 
 .btn-warning:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-danger {
-    background: #F97316;
+    background: #FF6600;
     color: white;
 }
 
 .btn-danger:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-info {
-    background: #F97316;
+    background: #FF6600;
     color: white;
 }
 
 .btn-info:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-sm {
@@ -295,7 +291,7 @@ header h1 img {
 
 .modal-content h2 {
     margin-bottom: 20px;
-    color: #7C3AED;
+    color: #4B0082;
 }
 
 .form-group {
@@ -312,7 +308,7 @@ header h1 img {
     display: block;
     margin-bottom: 5px;
     font-weight: 500;
-    color: #333;
+    color: #2C2C2C;
 }
 
 .form-group input,
@@ -330,8 +326,8 @@ header h1 img {
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #7C3AED;
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    border-color: #5C2599;
+    box-shadow: 0 0 0 3px rgba(92, 37, 153, 0.1);
 }
 
 .form-group textarea {
@@ -350,7 +346,7 @@ header h1 img {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
-    border-left: 4px solid #7C3AED;
+    border-left: 4px solid #5C2599;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
@@ -360,7 +356,7 @@ header h1 img {
     justify-content: space-between;
     margin-bottom: 10px;
     font-weight: 600;
-    color: #7C3AED;
+    color: #5C2599;
 }
 
 .historial-item-info {
@@ -392,7 +388,7 @@ header h1 img {
 }
 
 .detalle-seccion h3 {
-    color: #7C3AED;
+    color: #4B0082;
     margin-bottom: 15px;
     font-size: 1.2em;
     border-bottom: 2px solid #f3f4f6;
@@ -406,7 +402,7 @@ header h1 img {
 }
 
 .detalle-item strong {
-    color: #333;
+    color: #2C2C2C;
     margin-right: 8px;
 }
 
@@ -414,7 +410,7 @@ header h1 img {
     background: #ffffff;
     padding: 15px;
     border-radius: 8px;
-    border-left: 4px solid #7C3AED;
+    border-left: 4px solid #5C2599;
     border: 1px solid #e5e7eb;
     white-space: pre-wrap;
     word-wrap: break-word;
@@ -426,7 +422,7 @@ header h1 img {
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 15px;
-    border-left: 4px solid #7C3AED;
+    border-left: 4px solid #5C2599;
     border: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
@@ -435,7 +431,7 @@ header h1 img {
     display: flex;
     justify-content: space-between;
     margin-bottom: 10px;
-    color: #7C3AED;
+    color: #5C2599;
     font-weight: 600;
 }
 
@@ -479,7 +475,7 @@ header h1 img {
 
 .linea-tiempo-controls select:focus {
     outline: none;
-    border-color: #7C3AED;
+    border-color: #5C2599;
 }
 
 /* Roadmap horizontal */
@@ -522,12 +518,12 @@ header h1 img {
 
 .roadmap-task-box.en-proceso {
     background: #fff7ed;
-    border-left: 4px solid #F97316;
+    border-left: 4px solid #FF6600;
 }
 
 .roadmap-task-box.pendiente {
     background: #faf5ff;
-    border-left: 4px solid #7C3AED;
+    border-left: 4px solid #5C2599;
 }
 
 .roadmap-task-connector {
@@ -537,8 +533,8 @@ header h1 img {
     transform: translateX(-50%);
     width: 2px;
     height: 40px;
-    background: #7C3AED;
-    box-shadow: 0 0 4px rgba(124, 58, 237, 0.3);
+    background: #5C2599;
+    box-shadow: 0 0 4px rgba(92, 37, 153, 0.3);
 }
 
 .roadmap-task-content {
@@ -554,14 +550,14 @@ header h1 img {
 
 .roadmap-task-numero {
     font-weight: 600;
-    color: #7C3AED;
+    color: #5C2599;
     font-size: 0.85em;
 }
 
 .roadmap-task-title {
     font-size: 0.9em;
     font-weight: 500;
-    color: #333;
+    color: #2C2C2C;
     margin-bottom: 8px;
     line-height: 1.3;
 }
@@ -584,7 +580,7 @@ header h1 img {
     left: 0;
     right: 0;
     height: 4px;
-    background: #7C3AED;
+    background: #5C2599;
     border-radius: 2px;
 }
 
@@ -600,16 +596,16 @@ header h1 img {
     width: 40px;
     height: 40px;
     background: #ffffff;
-    border: 2px solid #7C3AED;
+    border: 2px solid #5C2599;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto 8px;
     font-weight: 600;
-    color: #7C3AED;
+    color: #5C2599;
     font-size: 0.9em;
-    box-shadow: 0 2px 4px rgba(124, 58, 237, 0.1);
+    box-shadow: 0 2px 4px rgba(92, 37, 153, 0.1);
 }
 
 .roadmap-timeline-month {
@@ -621,7 +617,7 @@ header h1 img {
 
 .roadmap-timeline-quarter {
     font-size: 0.75em;
-    color: #F97316;
+    color: #FF6600;
     font-weight: 600;
     margin-top: 4px;
 }
@@ -659,13 +655,13 @@ header h1 img {
 }
 
 .btn-vista-active {
-    background: #F97316;
+    background: #FF6600;
     color: white;
-    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+    box-shadow: 0 2px 4px rgba(255, 102, 0, 0.3);
 }
 
 .btn-vista-active:hover {
-    background: #EA580C;
+    background: #FF8C00;
 }
 
 .btn-vista-active img {
@@ -683,9 +679,9 @@ header h1 img {
 }
 
 .tabla-tareas thead {
-    background: #F97316;
+    background: #FF6600;
     color: white;
-    box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2);
+    box-shadow: 0 2px 4px rgba(255, 102, 0, 0.2);
 }
 
 .tabla-tareas th {
@@ -721,7 +717,7 @@ header h1 img {
     width: 60px;
     text-align: center;
     font-weight: 600;
-    color: #7C3AED;
+    color: #5C2599;
 }
 
 .col-tarea {
@@ -730,7 +726,7 @@ header h1 img {
 }
 
 .col-tarea strong {
-    color: #333;
+    color: #2C2C2C;
 }
 
 .col-encargado {
@@ -786,12 +782,12 @@ header h1 img {
 
 .fila-tarea.en-proceso {
     background: #fff7ed;
-    border-left: 3px solid #F97316;
+    border-left: 3px solid #FF6600;
 }
 
 .fila-tarea.pendiente {
     background: #faf5ff;
-    border-left: 3px solid #7C3AED;
+    border-left: 3px solid #5C2599;
 }
 
 @media (max-width: 1200px) {
