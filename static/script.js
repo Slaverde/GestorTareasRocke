@@ -530,7 +530,7 @@ function verDetallesTarea(id) {
 
     const content = document.getElementById('detallesContent');
     content.innerHTML = `
-        <div class="detalle-seccion">
+        <div class="detalle-seccion info-grid">
             <h3>Información General</h3>
             <div class="detalle-item">
                 <strong>Número de Tarea:</strong> ${tarea.numero_df || 'Sin número'}
@@ -557,7 +557,7 @@ function verDetallesTarea(id) {
             </div>
         </div>
         
-        <div class="detalle-seccion">
+        <div class="detalle-seccion info-grid">
             <h3>Responsable y Fechas</h3>
             <div class="detalle-item">
                 <strong>Encargado(a):</strong> ${tarea.encargado_actual}
@@ -597,7 +597,7 @@ function verDetallesTarea(id) {
         ` : ''}
         
         ${tarea.delegaciones && tarea.delegaciones.length > 0 ? `
-        <div class="detalle-seccion">
+        <div class="detalle-seccion delegaciones-seccion">
             <h3>Historial de Delegaciones (${tarea.delegaciones.length})</h3>
             ${tarea.delegaciones.map((d, index) => `
                 <div class="delegacion-item">
