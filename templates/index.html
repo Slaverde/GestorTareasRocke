@@ -3,257 +3,1654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Tareas Comerciales - D&F</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Gestor de Tareas</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            /* Colors */
+            --bg-app: #F8FAFC;
+            --bg-sidebar: #F1F5F9;
+            --bg-surface: #FFFFFF;
+            --bg-surface-hover: #F1F5F9;
+            --border-color: #E2E8F0;
+            
+            --text-main: #0F172A;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
+            
+            --accent: #6D28D9;
+            --accent-hover: #5B21B6;
+            --accent-muted: rgba(109, 40, 217, 0.15);
+            
+            --danger: #EF4444;
+            --danger-muted: rgba(239, 68, 68, 0.15);
+            --success: #10B981;
+            --warning: #F59E0B;
+            
+            /* Priorities */
+            --p-urgente: #EF4444;
+            --p-alta: #F59E0B;
+            --p-normal: #6D28D9;
+            --p-baja: #94A3B8;
+            
+            /* Statuses */
+            --s-pendiente: #64748B;
+            --s-proceso: #F59E0B;
+            --s-finalizado: #10B981;
+            --s-cancelado: #EF4444;
+
+            /* Spacing */
+            --sidebar-width: 260px;
+            --panel-width: 450px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            overflow: hidden; /* App-like feel */
+            font-size: 14px;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+        }
+
+        input, select, textarea {
+            font-family: inherit;
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* ----- Layout ----- */
+        .app-container {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* ----- Sidebar ----- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-header {
+            height: 60px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            font-weight: 700;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .sidebar-nav {
+            padding: 20px 12px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+        
+        .nav-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 8px;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            margin-bottom: 2px;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-surface-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-muted);
+            color: var(--accent-hover);
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* ----- Main Content ----- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .topbar {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            background-color: var(--bg-app);
+            z-index: 10;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .search-bar {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            width: 300px;
+            color: var(--text-muted);
+        }
+        
+        .search-bar input {
+            border: none;
+            background: none;
+            padding: 0;
+            margin-left: 8px;
+            width: 100%;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-surface-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-danger:hover {
+            background-color: #F87171;
+        }
+
+        .rt-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .rt-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-muted);
+        }
+
+        .rt-dot.connected { background-color: var(--success); }
+        .rt-dot.disconnected { background-color: var(--danger); }
+
+        /* ----- Content Area ----- */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* View Toggles */
+        .view-toggles {
+            display: flex;
+            gap: 4px;
+            background: var(--bg-surface);
+            padding: 4px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            width: fit-content;
+            margin-bottom: 24px;
+        }
+
+        .view-toggle {
+            padding: 6px 12px;
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .view-toggle.active {
+            background: var(--bg-surface-hover);
+            color: var(--text-main);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Filters Bar */
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        /* ----- Task List (Linear Style) ----- */
+        .task-group {
+            margin-bottom: 32px;
+        }
+
+        .task-group-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        .task-count {
+            color: var(--text-muted);
+            font-weight: 400;
+            font-size: 13px;
+        }
+
+        .task-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            border-bottom: 1px solid var(--border-color);
+            transition: all 0.15s;
+            cursor: pointer;
+            gap: 16px;
+        }
+
+        .task-row:hover {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+        }
+
+        .task-row.subtarea {
+            margin-left: 32px;
+            border-left: 2px solid var(--border-color);
+            border-bottom: 1px solid transparent;
+        }
+
+        .t-id {
+            color: var(--text-muted);
+            font-size: 12px;
+            width: 50px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .t-priority {
+            width: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .dot.urgente { background: var(--p-urgente); }
+        .dot.alta { background: var(--p-alta); }
+        .dot.normal { background: var(--p-normal); }
+        .dot.baja { background: var(--p-baja); border: 1px solid var(--text-muted); background: transparent;}
+
+        .t-title {
+            flex: 1;
+            font-weight: 500;
+            color: var(--text-main);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .t-status {
+            width: 110px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            border: 1px solid;
+        }
+
+        .status-badge.pendiente { color: var(--s-pendiente); border-color: rgba(100, 116, 139, 0.3); background: rgba(100, 116, 139, 0.1); }
+        .status-badge.en-proceso { color: var(--s-proceso); border-color: rgba(245, 158, 11, 0.3); background: rgba(245, 158, 11, 0.1); }
+        .status-badge.finalizado { color: var(--s-finalizado); border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.1); }
+        .status-badge.cancelado { color: var(--s-cancelado); border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
+
+        .t-assignee {
+            width: 120px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .avatar {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--bg-surface-hover);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .t-date {
+            width: 100px;
+            color: var(--text-muted);
+            font-size: 13px;
+            text-align: right;
+        }
+
+        .t-date.overdue {
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        /* ----- Kanban Board (Dark Theme adaptation) ----- */
+        .kanban-board {
+            display: flex;
+            gap: 16px;
+            overflow-x: auto;
+            padding-bottom: 16px;
+            align-items: flex-start;
+            height: 100%;
+        }
+
+        .kanban-column {
+            flex: 0 0 300px;
+            background: var(--bg-surface);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+        }
+
+        .kanban-header {
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .kanban-count {
+            color: var(--text-muted);
+        }
+
+        .kanban-cards {
+            padding: 12px;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 150px;
+        }
+
+        .k-card {
+            background: var(--bg-app);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 12px;
+            cursor: grab;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .k-card:hover {
+            border-color: var(--text-muted);
+        }
+
+        .k-card.sortable-ghost {
+            opacity: 0.4;
+        }
+
+        .k-card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .k-card-title {
+            font-weight: 500;
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .k-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ----- Right Panel (Slide-over) ----- */
+        .right-panel {
+            position: fixed;
+            top: 0;
+            right: -600px; /* Hidden initially */
+            width: 600px;
+            height: 100vh;
+            background-color: var(--bg-surface);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+            z-index: 100;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .right-panel.open {
+            right: 0;
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(2px);
+        }
+
+        .panel-overlay.open {
+            display: block;
+            opacity: 1;
+        }
+
+        .panel-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .panel-btn-icon {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .panel-btn-icon:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-main);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* Form elements inside panel */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 16px;
+        }
+        .form-row .form-group { flex: 1; }
+
+        .panel-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            background: var(--bg-surface);
+        }
+
+        /* ----- Modals for smaller actions (Encargados/Delegar) ----- */
+        dialog {
+            margin: auto;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            padding: 24px;
+            width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        
+        dialog::backdrop {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(2px);
+        }
+
+        dialog h3 {
+            margin-bottom: 16px;
+        }
+
+        /* ----- Utilities ----- */
+        .hidden { display: none !important; }
+        
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 64px; }
+            .sidebar-header span, .nav-item span { display: none; }
+            .nav-section-title { text-align: center; font-size: 9px; }
+            .nav-icon { margin-right: 0; }
+            .right-panel { width: 100vw; right: -100vw; }
+            .t-date { display: none; }
+            .t-assignee { display: none; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><img src="{{ url_for('static', filename='logo_ROCKET.png.png') }}" alt="Rocket" style="height: 40px; vertical-align: middle; margin-right: 10px;"> Gestor de Tareas Comerciales</h1>
-            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                <button class="btn btn-info" onclick="abrirLineaTiempo()">📅 Línea de Tiempo</button>
-                <button class="btn btn-success" onclick="exportarTareas()">📥 Exportar Excel</button>
-                <button class="btn btn-warning" onclick="document.getElementById('archivoImportar').click()">📤 Importar Excel</button>
+
+<div class="app-container">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <i data-lucide="rocket" style="width:24px; height:24px; color:var(--accent);"></i>
+            <span>Rocket Tasks</span>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <a href="#" class="nav-item active" onclick="filtrarTareasRapido('todas')">
+                    <span class="nav-icon"><i data-lucide="inbox" style="width:18px; height:18px;"></i></span><span>Inbox</span>
+                </a>
+                <a href="#" class="nav-item" onclick="filtrarTareasRapido('hoy')">
+                    <span class="nav-icon"><i data-lucide="star" style="width:18px; height:18px;"></i></span><span>Hoy</span>
+                </a>
+                <a href="#" class="nav-item" onclick="filtrarTareasRapido('atrasadas')">
+                    <span class="nav-icon"><i data-lucide="alert-circle" style="width:18px; height:18px;"></i></span><span>Atrasadas</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Vistas</div>
+                <a href="#" class="nav-item" onclick="cambiarVista('lista')">
+                    <span class="nav-icon"><i data-lucide="list" style="width:18px; height:18px;"></i></span><span>Lista</span>
+                </a>
+                <a href="#" class="nav-item" onclick="cambiarVista('kanban')">
+                    <span class="nav-icon"><i data-lucide="layout-dashboard" style="width:18px; height:18px;"></i></span><span>Tablero</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">Gestión</div>
+                <a href="/informes" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="bar-chart-2" style="width:18px; height:18px;"></i></span><span>Informes</span>
+                </a>
+                <a href="#" class="nav-item" onclick="document.getElementById('dialogEncargados').showModal(); cargarListaEncargados();">
+                    <span class="nav-icon"><i data-lucide="users" style="width:18px; height:18px;"></i></span><span>Equipo</span>
+                </a>
+                <a href="#" class="nav-item" onclick="exportarTareas()">
+                    <span class="nav-icon"><i data-lucide="download" style="width:18px; height:18px;"></i></span><span>Exportar</span>
+                </a>
+                <a href="#" class="nav-item" onclick="document.getElementById('archivoImportar').click()">
+                    <span class="nav-icon"><i data-lucide="upload" style="width:18px; height:18px;"></i></span><span>Importar</span>
+                </a>
                 <input type="file" id="archivoImportar" accept=".xlsx,.xls" style="display: none;" onchange="importarTareas(event)">
-                <div style="display: flex; gap: 5px; background: #f0f0f0; padding: 4px; border-radius: 6px;">
-                    <button id="btnVistaTarjetas" class="btn-vista" onclick="cambiarVista('tarjetas')" title="Vista de tarjetas">
-                        <span>📋</span>
-                    </button>
-                    <button id="btnVistaLista" class="btn-vista btn-vista-active" onclick="cambiarVista('lista')" title="Vista de lista">
-                        <span>📝</span>
-                    </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Topbar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <div class="search-bar">
+                    <i data-lucide="search" style="width:16px; height:16px;"></i>
+                    <input type="text" id="buscarTarea" placeholder="Buscar tareas, temas, IDs..." onkeyup="filtrarTareas()">
                 </div>
-                <button class="btn btn-info" onclick="abrirModalCrearEncargado()" title="Crear nuevo encargado">👥 Nuevo Encargado</button>
-                <button class="btn btn-primary" onclick="abrirModalCrear()">+ Nueva Tarea</button>
+            </div>
+            <div class="topbar-right">
+                <div class="rt-indicator" title="Conexión en tiempo real">
+                    <div id="rtDot" class="rt-dot"></div>
+                    <span id="rtText">Conectando...</span>
+                </div>
+                <button class="btn-primary" onclick="abrirPanelCrear()">
+                    <i data-lucide="plus" style="width:16px; height:16px;"></i> Nueva Tarea
+                </button>
             </div>
         </header>
 
-        <div class="filters">
-            <input type="text" id="buscarTarea" placeholder="Buscar tarea..." onkeyup="filtrarTareas()">
-            <select id="filtroEstado" onchange="filtrarTareas()">
-                <option value="">Todos los estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="En Proceso">En Proceso</option>
-                <option value="Finalizado">Finalizado</option>
-                <option value="Cancelado">Cancelado</option>
-            </select>
-            <select id="filtroEncargado" onchange="filtrarTareas()">
-                <option value="">Todos los encargados</option>
-            </select>
-            <select id="ordenarFecha" onchange="filtrarTareas()">
-                <option value="">Ordenar por fecha</option>
-                <option value="fecha_inicio_asc">Fecha Inicio: Más antigua primero</option>
-                <option value="fecha_inicio_desc">Fecha Inicio: Más reciente primero</option>
-                <option value="fecha_fin_asc">Fecha Fin: Más antigua primero</option>
-                <option value="fecha_fin_desc">Fecha Fin: Más reciente primero</option>
-                <option value="fecha_creacion_asc">Fecha Creación: Más antigua primero</option>
-                <option value="fecha_creacion_desc">Fecha Creación: Más reciente primero</option>
-            </select>
-        </div>
-
-        <div class="tareas-container" id="tareasContainer">
-            <!-- Las tareas se cargarán aquí dinámicamente -->
-        </div>
-    </div>
-
-    <!-- Modal para crear/editar tarea -->
-    <div id="modalTarea" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">&times;</span>
-            <h2 id="modalTitulo">Nueva Tarea</h2>
-            <form id="formTarea" onsubmit="guardarTarea(event)">
-                <div class="form-group">
-                    <label>Número de Tarea:</label>
-                    <input type="text" id="numero_df" name="numero_df" placeholder="Ej: TAR-001">
-                </div>
-                
-                <div class="form-group">
-                    <label>Actividad Predecesora:</label>
-                    <input type="text" id="actividad_predecesora" name="actividad_predecesora" placeholder="Ej: Revisión de documentos">
-                </div>
-                
-                <div class="form-group">
-                    <label>Asunto, Tema:</label>
-                    <input type="text" id="asunto_tema" name="asunto_tema" placeholder="Ej: Reunión con cliente">
-                </div>
-                
-                <div class="form-group">
-                    <label>Tarea *:</label>
-                    <textarea id="tarea" name="tarea" required rows="3" placeholder="Describe la tarea a realizar..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Encargado(a) *:</label>
-                    <div style="display: flex; gap: 5px;">
-                        <select id="encargado_actual" name="encargado_actual" required style="flex: 1;">
-                            <option value="">Seleccione un encargado</option>
-                        </select>
-                        <button type="button" class="btn btn-info btn-sm" onclick="abrirModalEncargados()" title="Gestionar encargados">👥</button>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Fecha Inicio *:</label>
-                        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Fecha Fin:</label>
-                        <input type="date" id="fecha_fin" name="fecha_fin">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Estado:</label>
-                    <select id="estado" name="estado">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Finalizado">Finalizado</option>
-                        <option value="Cancelado">Cancelado</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Evidencia, Conclusión, Resultado, Soporte:</label>
-                    <textarea id="evidencia" name="evidencia" rows="3" placeholder="Agrega enlaces, archivos o referencias de evidencia..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Observaciones:</label>
-                    <textarea id="observaciones" name="observaciones" rows="3" placeholder="Notas adicionales o comentarios sobre la tarea..."></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal para delegar tarea -->
-    <div id="modalDelegar" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalDelegar()">&times;</span>
-            <h2>Delegar Tarea</h2>
-            <form id="formDelegar" onsubmit="guardarDelegacion(event)">
-                <input type="hidden" id="tarea_id_delegar" name="tarea_id">
-                
-                <div class="form-group">
-                    <label>Delegar de (Persona actual) *:</label>
-                    <input type="text" id="delegado_de" name="delegado_de" required readonly>
-                </div>
-                
-                <div class="form-group">
-                    <label>Delegar a (Nueva persona) *:</label>
-                    <select id="delegado_a" name="delegado_a" required>
-                        <option value="">Seleccione un encargado</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label>Motivo de la delegación:</label>
-                    <textarea id="motivo" name="motivo" rows="3"></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label>Observaciones:</label>
-                    <textarea id="observaciones_delegacion" name="observaciones_delegacion" rows="3"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModalDelegar()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Delegar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal para ver historial de delegaciones -->
-    <div id="modalHistorial" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalHistorial()">&times;</span>
-            <h2>Historial de Delegaciones</h2>
-            <div id="historialContent">
-                <!-- El historial se cargará aquí -->
+        <!-- Content Area -->
+        <div class="content-area">
+            <div class="page-header">
+                <h1 class="page-title" id="pageTitle">Inbox</h1>
+                <p class="page-subtitle" id="pageSubtitle">Todas tus tareas comerciales</p>
             </div>
-        </div>
-    </div>
 
-    <!-- Modal para ver detalles de la tarea -->
-    <div id="modalDetalles" class="modal">
-        <div class="modal-content modal-detalles">
-            <span class="close" onclick="cerrarModalDetalles()">&times;</span>
-            <h2>Detalles de la Tarea</h2>
-            <div id="detallesContent">
-                <!-- Los detalles se cargarán aquí -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para gestionar encargados -->
-    <div id="modalEncargados" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalEncargados()">&times;</span>
-            <h2>👥 Gestionar Encargados</h2>
-            <div style="margin-bottom: 20px;">
-                <button class="btn btn-primary" onclick="abrirModalCrearEncargado()">+ Nuevo Encargado</button>
-            </div>
-            <div id="listaEncargados">
-                <!-- Los encargados se cargarán aquí -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal para crear/editar encargado -->
-    <div id="modalCrearEncargado" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModalCrearEncargado()">&times;</span>
-            <h2 id="modalEncargadoTitulo">Nuevo Encargado</h2>
-            <form id="formEncargado" onsubmit="guardarEncargado(event)">
-                <div class="form-group">
-                    <label>Nombre *:</label>
-                    <input type="text" id="encargado_nombre" name="nombre" required>
-                </div>
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="encargado_email" name="email">
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModalCrearEncargado()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal para línea de tiempo -->
-    <div id="modalLineaTiempo" class="modal">
-        <div class="modal-content modal-linea-tiempo">
-            <span class="close" onclick="cerrarLineaTiempo()">&times;</span>
-            <h2>📅 Línea de Tiempo de Tareas</h2>
-            <div class="linea-tiempo-controls">
-                <select id="filtroLineaTiempo" onchange="actualizarLineaTiempo()">
-                    <option value="fecha_creacion">Ordenar por Fecha de Creación</option>
-                    <option value="fecha_inicio">Ordenar por Fecha de Inicio</option>
-                    <option value="fecha_fin">Ordenar por Fecha de Fin</option>
-                </select>
-                <select id="filtroEstadoLinea" onchange="actualizarLineaTiempo()">
-                    <option value="">Todos los estados</option>
+            <div class="filters-bar" id="filtersBar">
+                <select id="filtroEstado" onchange="filtrarTareas()">
+                    <option value="">Estado: Todos</option>
                     <option value="Pendiente">Pendiente</option>
                     <option value="En Proceso">En Proceso</option>
                     <option value="Finalizado">Finalizado</option>
                     <option value="Cancelado">Cancelado</option>
                 </select>
+                <select id="filtroPrioridad" onchange="filtrarTareas()">
+                    <option value="">Prioridad: Todas</option>
+                    <option value="Urgente">Urgente</option>
+                    <option value="Alta">Alta</option>
+                    <option value="Normal">Normal</option>
+                    <option value="Baja">Baja</option>
+                </select>
+                <select id="filtroTipo" onchange="filtrarTareas()">
+                    <option value="">Tipo: Todos</option>
+                    <option value="Tarea">Tarea</option>
+                    <option value="Bug">Bug</option>
+                    <option value="Feature">Feature</option>
+                    <option value="Hito">Hito</option>
+                </select>
+                <select id="filtroEncargado" onchange="filtrarTareas()">
+                    <option value="">Encargado: Todos</option>
+                </select>
+                <select id="ordenarFecha" onchange="filtrarTareas()">
+                    <option value="fecha_creacion_desc">Más recientes primero</option>
+                    <option value="fecha_creacion_asc">Más antiguas primero</option>
+                    <option value="fecha_fin_asc">Vencimiento más próximo</option>
+                </select>
             </div>
-            <div id="lineaTiempoContent">
-                <!-- La línea de tiempo se cargará aquí -->
+
+            <!-- List View Container -->
+            <div id="viewLista">
+                <!-- Groups will be rendered here dynamically by JS -->
+            </div>
+
+            <!-- Kanban View Container -->
+            <div id="viewKanban" class="kanban-board hidden">
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span>Pendiente</span>
+                        <span class="kanban-count" id="kcount-0">0</span>
+                    </div>
+                    <div class="kanban-cards" id="kcards-0" data-estado="Pendiente"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span style="color: var(--s-proceso)">En Proceso</span>
+                        <span class="kanban-count" id="kcount-1">0</span>
+                    </div>
+                    <div class="kanban-cards" id="kcards-1" data-estado="En Proceso"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span style="color: var(--s-finalizado)">Finalizado</span>
+                        <span class="kanban-count" id="kcount-2">0</span>
+                    </div>
+                    <div class="kanban-cards" id="kcards-2" data-estado="Finalizado"></div>
+                </div>
+                <div class="kanban-column">
+                    <div class="kanban-header">
+                        <span style="color: var(--s-cancelado)">Cancelado</span>
+                        <span class="kanban-count" id="kcount-3">0</span>
+                    </div>
+                    <div class="kanban-cards" id="kcards-3" data-estado="Cancelado"></div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Slide-over Right Panel for Task Details/Edit -->
+    <div class="panel-overlay" id="panelOverlay" onclick="cerrarPanel()"></div>
+    <aside class="right-panel" id="rightPanel">
+        <div class="panel-header">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span id="panelTaskStatus"></span>
+                <span id="panelTaskID" style="color:var(--text-muted); font-size:13px; font-weight:500;">Nueva Tarea</span>
+            </div>
+            <div class="panel-actions">
+                <button class="panel-btn-icon" id="btnEditTask" onclick="toggleEditMode()" title="Editar"><i data-lucide="edit-2" style="width:16px; height:16px;"></i></button>
+                <button class="panel-btn-icon" id="btnDeleteTask" onclick="eliminarTareaActual()" title="Eliminar" style="color:var(--danger)"><i data-lucide="trash-2" style="width:16px; height:16px;"></i></button>
+                <button class="panel-btn-icon" onclick="cerrarPanel()" title="Cerrar"><i data-lucide="x" style="width:18px; height:18px;"></i></button>
             </div>
         </div>
-    </div>
+        
+        <div class="panel-content">
+            <form id="formTarea" onsubmit="guardarTarea(event)">
+                
+                <div class="form-group">
+                    <input type="text" id="tarea" name="tarea" required placeholder="Título de la tarea..." 
+                           style="font-size:20px; font-weight:600; width:100%; border:none; background:none; padding:0; margin-bottom:16px;">
+                </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="estado" name="estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Finalizado">Finalizado</option>
+                            <option value="Cancelado">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Prioridad</label>
+                        <select id="prioridad" name="prioridad">
+                            <option value="Normal">Normal</option>
+                            <option value="Urgente">Urgente</option>
+                            <option value="Alta">Alta</option>
+                            <option value="Baja">Baja</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Encargado</label>
+                    <select id="encargado_actual" name="encargado_actual" required style="width:100%;"></select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha Inicio</label>
+                        <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha Vencimiento</label>
+                        <input type="date" id="fecha_fin" name="fecha_fin">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Asunto / Tema</label>
+                    <input type="text" id="asunto_tema" name="asunto_tema" placeholder="Contexto general...">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Actividad predecesora</label>
+                        <select id="parent_id" name="parent_id"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Bloqueada por</label>
+                        <select id="depends_on_id" name="depends_on_id"></select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Evidencia / Resultados</label>
+                    <textarea id="evidencia" name="evidencia" placeholder="Links a PRs, docs, etc..."
+                        style="resize:none; height:130px; width:100%;"></textarea>
+                </div>
+
+                <!-- Botón oculto para el submit de JS -->
+                <button type="submit" id="btnSubmitForm" style="display:none;"></button>
+            </form>
+
+            <!-- Sección de notas: independiente del form principal -->
+            <div id="seccionNotas" style="display:none; margin-top:20px; margin-bottom:4px;">
+                <div style="margin-bottom:8px; font-size:13px; font-weight:500; color:var(--text-secondary); display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="file-text" style="width:14px;height:14px;"></i>
+                    Agregar nota
+                </div>
+                <textarea id="nuevaNota"
+                    style="resize:none; height:110px; width:100%; border:1px solid var(--border-color); border-radius:6px; padding:8px 12px; font-size:14px; background:var(--bg-app); color:var(--text-main);"
+                    placeholder="Escribe aquí una nota o actualización..."></textarea>
+                <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                    <button class="btn-primary" style="padding:7px 16px; font-size:13px;" onclick="agregarNota()">
+                        <i data-lucide="plus" style="width:14px;height:14px;"></i> Agregar nota
+                    </button>
+                </div>
+            </div>
+
+            <!-- Historial de Notas -->
+            <div id="historialNotasSection" style="display:none; margin-top:12px; margin-bottom:20px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--bg-surface-hover); border:1px solid var(--border-color); border-radius:8px 8px 0 0; border-bottom:none;">
+                    <div style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text-main);">
+                        <i data-lucide="clock" style="width:14px;height:14px; color:var(--accent);"></i>
+                        Historial de notas
+                    </div>
+                    <span id="historialNotasCount" style="font-size:11px; background:var(--accent-muted); color:var(--accent); padding:2px 8px; border-radius:10px; font-weight:600;"></span>
+                </div>
+                <div id="historialNotasList"
+                    style="border:1px solid var(--border-color); border-radius:0 0 8px 8px; overflow:hidden;">
+                </div>
+            </div>
+
+            <div id="subtareasSection" class="form-group" style="margin-top:32px; display:none;">
+                <label style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Subtareas</span>
+                    <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="abrirPanelCrearSubtarea()">+ Agregar</button>
+                </label>
+                <div id="subtareasList" style="display:flex; flex-direction:column; gap:8px;"></div>
+            </div>
+            
+            <div id="historialSection" class="form-group" style="margin-top:32px; display:none;">
+                <label>Historial de Delegaciones</label>
+                <div id="historialList" style="font-size:13px; color:var(--text-secondary);"></div>
+            </div>
+        </div>
+        
+        <div class="panel-footer" id="panelFooter">
+            <button class="btn-secondary" id="btnDelegar" onclick="abrirDialogDelegar()">Delegar</button>
+            <button class="btn-secondary" onclick="cerrarPanel()">Cancelar</button>
+            <button class="btn-primary" onclick="document.getElementById('btnSubmitForm').click()">Guardar Cambios</button>
+        </div>
+    </aside>
+
+</div>
+
+<!-- DIALOGS -->
+<dialog id="dialogDelegar">
+    <h3>Delegar Tarea</h3>
+    <div class="form-group">
+        <label>Delegar a</label>
+        <select id="delegado_a"></select>
+    </div>
+    <div class="form-group">
+        <label>Motivo</label>
+        <textarea id="delegado_motivo" rows="2"></textarea>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-secondary" onclick="document.getElementById('dialogDelegar').close()">Cancelar</button>
+        <button class="btn-primary" onclick="ejecutarDelegacion()">Delegar</button>
+    </div>
+</dialog>
+
+<dialog id="dialogEncargados">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="margin:0;">Equipo</h3>
+        <button class="btn-secondary" style="padding:4px 8px; font-size:12px;" onclick="document.getElementById('dialogCrearEncargado').showModal()">+ Nuevo</button>
+    </div>
+    <div id="listaEncargados" style="max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px;"></div>
+    <div style="display:flex; justify-content:flex-end; margin-top:16px;">
+        <button class="btn-secondary" onclick="document.getElementById('dialogEncargados').close()">Cerrar</button>
+    </div>
+</dialog>
+
+<dialog id="dialogCrearEncargado">
+    <h3 id="encargadoTitle">Nuevo Miembro</h3>
+    <input type="hidden" id="encargadoEditId">
+    <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="encargado_nombre">
+    </div>
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="encargado_email">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+        <button class="btn-secondary" onclick="document.getElementById('dialogCrearEncargado').close()">Cancelar</button>
+        <button class="btn-primary" onclick="guardarEncargado()">Guardar</button>
+    </div>
+</dialog>
+
+
+<script>
+    // --- State ---
+    let tareas = [];
+    let encargados = [];
+    let vistaActual = 'lista'; // 'lista' o 'kanban'
+    let filtroRapido = 'todas'; // 'todas', 'hoy', 'atrasadas'
+    
+    let tareaEnPanel = null; // ID de tarea editada, o null si es nueva
+    let sortableInstances = [];
+
+    // --- Socket.IO ---
+    const socket = io();
+    socket.on('connect', () => {
+        document.getElementById('rtDot').className = 'rt-dot connected';
+        document.getElementById('rtText').textContent = 'En vivo';
+    });
+    socket.on('disconnect', () => {
+        document.getElementById('rtDot').className = 'rt-dot disconnected';
+        document.getElementById('rtText').textContent = 'Desconectado';
+    });
+    socket.on('tarea_actualizada', (tarea) => {
+        const idx = tareas.findIndex(t => t.id === tarea.id);
+        if (idx >= 0) tareas[idx] = tarea;
+        else tareas.push(tarea);
+        renderizar();
+    });
+    socket.on('tarea_eliminada', (data) => {
+        tareas = tareas.filter(t => t.id !== data.id);
+        renderizar();
+        if(tareaEnPanel === data.id) cerrarPanel();
+    });
+
+    // --- Init ---
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) window.lucide.createIcons();
+        cargarTareas();
+        cargarEncargados();
+    });
+
+    async function cargarTareas() {
+        try {
+            const res = await fetch('/api/tareas');
+            tareas = await res.json();
+            renderizar();
+        } catch (e) { console.error(e); }
+    }
+
+    async function cargarEncargados() {
+        try {
+            const res = await fetch('/api/encargados');
+            encargados = await res.json();
+            actualizarSelectsEncargados();
+        } catch (e) { console.error(e); }
+    }
+
+    function actualizarSelectsEncargados() {
+        const selects = ['encargado_actual', 'filtroEncargado', 'delegado_a'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if(!el) return;
+            const val = el.value;
+            const base = id === 'filtroEncargado' ? '<option value="">Encargado: Todos</option>' : '<option value="">Seleccione...</option>';
+            el.innerHTML = base + encargados.map(e => `<option value="${e.nombre}">${e.nombre}</option>`).join('');
+            el.value = val;
+        });
+    }
+
+    // --- Navigation & Filtering ---
+    function cambiarVista(vista) {
+        vistaActual = vista;
+        document.querySelectorAll('.sidebar-nav .nav-section:nth-child(2) .nav-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        if (vista === 'kanban') {
+            document.getElementById('viewLista').classList.add('hidden');
+            document.getElementById('viewKanban').classList.remove('hidden');
+        } else {
+            document.getElementById('viewLista').classList.remove('hidden');
+            document.getElementById('viewKanban').classList.add('hidden');
+        }
+        renderizar();
+    }
+
+    function filtrarTareasRapido(filtro) {
+        filtroRapido = filtro;
+        document.querySelectorAll('.sidebar-nav .nav-section:nth-child(1) .nav-item').forEach(el => el.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+        
+        const title = document.getElementById('pageTitle');
+        if(filtro === 'todas') title.textContent = 'Inbox';
+        if(filtro === 'hoy') title.textContent = 'Para Hoy';
+        if(filtro === 'atrasadas') title.textContent = 'Atrasadas';
+        
+        renderizar();
+    }
+
+    function renderizar() {
+        const texto = document.getElementById('buscarTarea').value.toLowerCase();
+        const fEst  = document.getElementById('filtroEstado').value;
+        const fPrio = document.getElementById('filtroPrioridad').value;
+        const fTipo = document.getElementById('filtroTipo').value;
+        const fEnc  = document.getElementById('filtroEncargado').value;
+        const ord   = document.getElementById('ordenarFecha').value;
+
+        const hoyStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local approx
+        const hoyDate = new Date(); hoyDate.setHours(0,0,0,0);
+
+        let tf = tareas.filter(t => {
+            // Busqueda texto
+            const matchTxt = !texto || 
+                (t.tarea && t.tarea.toLowerCase().includes(texto)) || 
+                (t.numero_df && t.numero_df.toLowerCase().includes(texto)) ||
+                (t.asunto_tema && t.asunto_tema.toLowerCase().includes(texto));
+            
+            // Filtros dropdown
+            const matchDrops = (!fEst || t.estado === fEst) && 
+                               (!fPrio || t.prioridad === fPrio) && 
+                               (!fTipo || t.tipo === fTipo) && 
+                               (!fEnc || t.encargado_actual === fEnc);
+            
+            // Filtro lateral
+            let matchSide = true;
+            if(filtroRapido === 'hoy') {
+                matchSide = t.fecha_fin && new Date(t.fecha_fin).toLocaleDateString('en-CA') === hoyStr && t.estado !== 'Finalizado';
+            } else if (filtroRapido === 'atrasadas') {
+                matchSide = t.fecha_fin && new Date(t.fecha_fin) < hoyDate && t.estado !== 'Finalizado';
+            }
+
+            return matchTxt && matchDrops && matchSide;
+        });
+
+        // Ordenar
+        tf.sort((a, b) => {
+            const getD = (t, c) => t[c] ? new Date(t[c]) : new Date('9999-12-31');
+            if(ord === 'fecha_creacion_desc') return getD(b,'fecha_creacion') - getD(a,'fecha_creacion');
+            if(ord === 'fecha_creacion_asc') return getD(a,'fecha_creacion') - getD(b,'fecha_creacion');
+            if(ord === 'fecha_fin_asc') return getD(a,'fecha_fin') - getD(b,'fecha_fin');
+            return 0;
+        });
+
+        if (vistaActual === 'lista') renderizarLista(tf, hoyDate);
+        else renderizarKanban(tf, hoyDate);
+        
+        // Re-inicializar iconos Lucide en el nuevo DOM renderizado
+        setTimeout(() => {
+            if (window.lucide) window.lucide.createIcons();
+        }, 10);
+    }
+
+    // --- Renders ---
+    function prioDot(prio) {
+        const cls = (prio || 'normal').toLowerCase();
+        return `<div class="dot ${cls}" title="Prioridad: ${prio}"></div>`;
+    }
+
+    function statusBadge(est) {
+        const cls = (est || 'pendiente').toLowerCase().replace(' ', '-');
+        return `<span class="status-badge ${cls}">${est}</span>`;
+    }
+
+    function renderizarLista(tf, hoyDate) {
+        const cont = document.getElementById('viewLista');
+        if (tf.length === 0) {
+            cont.innerHTML = `<div class="empty-state"><h3>No hay tareas</h3><p>Modifica los filtros o crea una nueva.</p></div>`;
+            return;
+        }
+
+        // Agrupar (To Do vs Done) para limpieza visual
+        const activas = tf.filter(t => t.estado !== 'Finalizado' && t.estado !== 'Cancelado');
+        const cerradas = tf.filter(t => t.estado === 'Finalizado' || t.estado === 'Cancelado');
+
+        let html = '';
+        if(activas.length > 0) html += generarGrupoLista('Activas', activas, hoyDate);
+        if(cerradas.length > 0) html += generarGrupoLista('Completadas / Canceladas', cerradas, hoyDate);
+        
+        cont.innerHTML = html;
+    }
+
+    function generarGrupoLista(titulo, lista, hoyDate) {
+        let html = `
+        <div class="task-group">
+            <div class="task-group-header">
+                <span>${titulo}</span> <span class="task-count">${lista.length}</span>
+            </div>`;
+            
+        lista.forEach(t => {
+            const fi = t.fecha_inicio ? new Date(t.fecha_inicio).toLocaleDateString('es-ES', {month:'short', day:'numeric'}) : '';
+            const ff = t.fecha_fin ? new Date(t.fecha_fin).toLocaleDateString('es-ES', {month:'short', day:'numeric'}) : 'Sin fecha';
+            const atrasada = t.fecha_fin && new Date(t.fecha_fin) < hoyDate && t.estado !== 'Finalizado';
+            const iniciales = (t.encargado_actual || '??').substring(0,2).toUpperCase();
+            const isSub = !!t.parent_id;
+
+            html += `
+            <div class="task-row ${isSub ? 'subtarea' : ''}" onclick="abrirPanelVer(${t.id})">
+                <div class="t-id">${t.numero_df || ''}</div>
+                <div class="t-priority">${prioDot(t.prioridad)}</div>
+                <div class="t-status">${statusBadge(t.estado)}</div>
+                <div class="t-title">${t.tarea} 
+                    ${t.subtareas_count > 0 ? `<span style="font-size:11px;color:var(--text-muted);margin-left:8px;display:inline-flex;align-items:center;gap:4px;"><i data-lucide="corner-down-right" style="width:12px;height:12px;"></i> ${t.subtareas_count} sub</span>` : ''}
+                </div>
+                <div class="t-assignee"><div class="avatar">${iniciales}</div> <span>${t.encargado_actual}</span></div>
+                <div class="t-date ${atrasada?'overdue':''}">${ff}</div>
+            </div>`;
+        });
+        html += `</div>`;
+        return html;
+    }
+
+    const ESTADOS_KANBAN = ['Pendiente', 'En Proceso', 'Finalizado', 'Cancelado'];
+    function renderizarKanban(tf, hoyDate) {
+        ESTADOS_KANBAN.forEach((est, i) => {
+            const grupo = tf.filter(t => t.estado === est);
+            document.getElementById(`kcount-${i}`).textContent = grupo.length;
+            const container = document.getElementById(`kcards-${i}`);
+            
+            container.innerHTML = grupo.map(t => {
+                const ff = t.fecha_fin ? new Date(t.fecha_fin).toLocaleDateString('es-ES', {month:'short', day:'numeric'}) : '';
+                const atrasada = t.fecha_fin && new Date(t.fecha_fin) < hoyDate && t.estado !== 'Finalizado';
+                const iniciales = (t.encargado_actual || '??').substring(0,2).toUpperCase();
+                
+                return `
+                <div class="k-card" data-id="${t.id}" data-estado="${t.estado}" onclick="abrirPanelVer(${t.id})">
+                    <div class="k-card-header">
+                        <span style="color:var(--text-muted)">${t.numero_df||''}</span>
+                        ${prioDot(t.prioridad)}
+                    </div>
+                    <div class="k-card-title">${t.tarea}</div>
+                    <div class="k-card-footer">
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <div class="avatar">${iniciales}</div>
+                            ${t.subtareas_count > 0 ? `<span style="font-size:11px;color:var(--text-muted);display:inline-flex;align-items:center;gap:2px;"><i data-lucide="corner-down-right" style="width:12px;height:12px;"></i> ${t.subtareas_count} sub</span>` : ''}
+                        </div>
+                        <div style="font-size:11px; display:flex; align-items:center; gap:4px; ${atrasada?'color:var(--danger)':'color:var(--text-muted)'}">
+                            <i data-lucide="calendar" style="width:12px;height:12px;"></i> ${ff}
+                            ${atrasada ? '<i data-lucide="alert-triangle" style="width:12px;height:12px;"></i>' : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        });
+
+        // Setup Sortable
+        sortableInstances.forEach(s => s.destroy());
+        sortableInstances = [];
+        ESTADOS_KANBAN.forEach((est, i) => {
+            const el = document.getElementById(`kcards-${i}`);
+            if(!el) return;
+            sortableInstances.push(Sortable.create(el, {
+                group: 'kanban',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: async (evt) => {
+                    const id = parseInt(evt.item.dataset.id);
+                    const nEst = evt.to.dataset.estado;
+                    if (evt.from.dataset.estado === nEst) return;
+                    
+                    try {
+                        const r = await fetch(`/api/tareas/${id}`, {
+                            method:'PUT', headers:{'Content-Type':'application/json'},
+                            body: JSON.stringify({estado: nEst})
+                        });
+                        if(!r.ok) evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+                    } catch(e) { evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]); }
+                }
+            }));
+        });
+    }
+
+    // --- Panel Lateral (Right Panel) ---
+    function actualizarSelectTareasDependencias(excludeId) {
+        const opts = '<option value="">Ninguna</option>' + tareas.filter(t => t.id !== excludeId).map(t => `<option value="${t.id}">${t.numero_df || ''} - ${t.tarea.substring(0,30)}</option>`).join('');
+        document.getElementById('parent_id').innerHTML = opts;
+        document.getElementById('depends_on_id').innerHTML = opts;
+    }
+
+    function abrirPanelCrear(parentId = null) {
+        tareaEnPanel = null;
+        document.getElementById('formTarea').reset();
+        document.getElementById('panelTaskID').textContent = 'Nueva Tarea';
+        document.getElementById('panelTaskStatus').innerHTML = statusBadge('Pendiente');
+        document.getElementById('fecha_inicio').value = new Date().toISOString().split('T')[0];
+        document.getElementById('prioridad').value = 'Normal';
+        document.getElementById('estado').value = 'Pendiente';
+        
+        actualizarSelectTareasDependencias(null);
+        if(parentId) document.getElementById('parent_id').value = parentId;
+
+        document.getElementById('btnDeleteTask').style.display = 'none';
+        document.getElementById('btnDelegar').style.display = 'none';
+        document.getElementById('subtareasSection').style.display = 'none';
+        document.getElementById('historialSection').style.display = 'none';
+        document.getElementById('historialNotasSection').style.display = 'none';
+        document.getElementById('seccionNotas').style.display = 'none';
+
+        abrirSlidePanel();
+    }
+
+    async function abrirPanelVer(id) {
+        const t = tareas.find(x => x.id === id);
+        if(!t) return;
+        tareaEnPanel = id;
+        
+        document.getElementById('panelTaskID').textContent = t.numero_df || `#${t.id}`;
+        document.getElementById('panelTaskStatus').innerHTML = statusBadge(t.estado);
+        
+        // Poblar form
+        document.getElementById('tarea').value = t.tarea || '';
+        document.getElementById('estado').value = t.estado || 'Pendiente';
+        document.getElementById('prioridad').value = t.prioridad || 'Normal';
+        document.getElementById('encargado_actual').value = t.encargado_actual || '';
+        document.getElementById('fecha_inicio').value = t.fecha_inicio || '';
+        document.getElementById('fecha_fin').value = t.fecha_fin || '';
+        document.getElementById('asunto_tema').value = t.asunto_tema || '';
+        document.getElementById('evidencia').value = t.evidencia || '';
+        document.getElementById('nuevaNota').value = '';
+        document.getElementById('seccionNotas').style.display = 'block';
+
+        actualizarSelectTareasDependencias(id);
+        document.getElementById('parent_id').value = t.parent_id || '';
+        document.getElementById('depends_on_id').value = t.depends_on_id || '';
+
+        document.getElementById('btnDeleteTask').style.display = 'flex';
+        document.getElementById('btnDelegar').style.display = 'flex';
+        
+        // Cargar subtareas
+        document.getElementById('subtareasSection').style.display = 'block';
+        try {
+            const r = await fetch(`/api/tareas/${id}/subtareas`);
+            const subs = await r.json();
+            const sList = document.getElementById('subtareasList');
+            if(subs.length > 0) {
+                sList.innerHTML = subs.map(s => `
+                    <div style="display:flex; justify-content:space-between; padding:8px; background:var(--bg-app); border:1px solid var(--border-color); border-radius:6px; cursor:pointer;" onclick="abrirPanelVer(${s.id})">
+                        <span style="font-size:13px;">${statusBadge(s.estado)} &nbsp; ${s.tarea}</span>
+                    </div>
+                `).join('');
+            } else {
+                sList.innerHTML = `<span style="font-size:12px; color:var(--text-muted);">No hay subtareas.</span>`;
+            }
+        } catch(e){}
+
+        // Historial de delegaciones
+        const hSec = document.getElementById('historialSection');
+        if(t.delegaciones && t.delegaciones.length > 0) {
+            hSec.style.display = 'block';
+            document.getElementById('historialList').innerHTML = t.delegaciones.map(d => `
+                <div style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid var(--border-color);">
+                    <div><strong>${d.delegado_de}</strong> <i data-lucide="arrow-right" style="width:12px;height:12px;vertical-align:middle;"></i> <strong>${d.delegado_a}</strong></div>
+                    <div style="font-size:11px;">${new Date(d.fecha_delegacion).toLocaleString('es-ES')}</div>
+                    ${d.motivo ? `<div>Motivo: ${d.motivo}</div>` : ''}
+                </div>
+            `).join('');
+        } else {
+            hSec.style.display = 'none';
+        }
+
+        // Historial de notas
+        renderizarHistorialNotas(t.historial_notas || []);
+
+        abrirSlidePanel();
+        setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 10);
+    }
+
+    function abrirSlidePanel() {
+        document.getElementById('rightPanel').classList.add('open');
+        document.getElementById('panelOverlay').classList.add('open');
+    }
+
+    function cerrarPanel() {
+        document.getElementById('rightPanel').classList.remove('open');
+        document.getElementById('panelOverlay').classList.remove('open');
+        tareaEnPanel = null;
+    }
+
+    async function guardarTarea(e) {
+        e.preventDefault();
+        const data = {
+            tarea: document.getElementById('tarea').value,
+            estado: document.getElementById('estado').value,
+            prioridad: document.getElementById('prioridad').value,
+            encargado_actual: document.getElementById('encargado_actual').value,
+            fecha_inicio: document.getElementById('fecha_inicio').value,
+            fecha_fin: document.getElementById('fecha_fin').value || null,
+            asunto_tema: document.getElementById('asunto_tema').value,
+            evidencia: document.getElementById('evidencia').value,
+            parent_id: document.getElementById('parent_id').value ? parseInt(document.getElementById('parent_id').value) : null,
+            depends_on_id: document.getElementById('depends_on_id').value ? parseInt(document.getElementById('depends_on_id').value) : null
+        };
+
+        const esNueva = !tareaEnPanel;
+        const idActual = tareaEnPanel;
+        const url = esNueva ? '/api/tareas' : `/api/tareas/${idActual}`;
+        const method = esNueva ? 'POST' : 'PUT';
+
+        try {
+            const r = await fetch(url, { method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(data) });
+            if(r.ok) {
+                await cargarTareas(); // esperar a que los datos frescos estén listos
+                if(esNueva) {
+                    cerrarPanel();
+                } else {
+                    // Recargar el panel en lugar de cerrarlo, para ver el historial actualizado
+                    abrirPanelVer(idActual);
+                }
+            } else { alert("Error al guardar"); }
+        } catch(e) { console.error(e); alert("Error"); }
+    }
+
+    async function eliminarTareaActual() {
+        if(!tareaEnPanel) return;
+        if(!confirm('¿Eliminar esta tarea?')) return;
+        try {
+            const r = await fetch(`/api/tareas/${tareaEnPanel}`, {method:'DELETE'});
+            if(r.ok) cerrarPanel();
+        } catch(e){}
+    }
+
+    function abrirPanelCrearSubtarea() {
+        if(!tareaEnPanel) return;
+        abrirPanelCrear(tareaEnPanel);
+    }
+
+    // --- Notas / Historial ---
+    function renderizarHistorialNotas(notas) {
+        const hNSec = document.getElementById('historialNotasSection');
+        hNSec.style.display = 'block';
+        document.getElementById('historialNotasCount').textContent =
+            `${notas.length} ${notas.length === 1 ? 'entrada' : 'entradas'}`;
+
+        if (notas.length > 0) {
+            // Mostramos de más reciente a más antigua, pero el índice real es el inverso
+            const entradasOrdenadas = notas.slice().reverse();
+            document.getElementById('historialNotasList').innerHTML = entradasOrdenadas.map((n, idxVis) => {
+                const idxReal = notas.length - 1 - idxVis; // índice original en el array del backend
+                return `
+                <div style="
+                    padding:12px 14px;
+                    background:${idxVis === 0 ? 'var(--bg-surface)' : 'var(--bg-app)'};
+                    border-bottom:${idxVis < entradasOrdenadas.length - 1 ? '1px solid var(--border-color)' : 'none'};
+                    border-left:3px solid ${idxVis === 0 ? 'var(--accent)' : 'var(--border-color)'};
+                ">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span style="font-size:11px; color:var(--text-muted);">
+                            ${new Date(n.fecha + ' UTC').toLocaleString('es-ES')}
+                        </span>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            ${idxVis === 0
+                                ? '<span style="font-size:10px; background:var(--accent-muted); color:var(--accent); padding:1px 8px; border-radius:10px; font-weight:600;">Última nota</span>'
+                                : `<span style="font-size:10px; color:var(--text-muted);">Nota #${idxReal + 1}</span>`
+                            }
+                            <button onclick="eliminarNota(${idxReal})"
+                                title="Eliminar nota"
+                                style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;color:var(--danger);background:none;border:none;cursor:pointer;opacity:0.6;transition:opacity 0.2s;"
+                                onmouseover="this.style.opacity='1';this.style.background='var(--danger-muted)'"
+                                onmouseout="this.style.opacity='0.6';this.style.background='none'">
+                                <i data-lucide="trash-2" style="width:13px;height:13px;pointer-events:none;"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div style="font-size:13px; color:var(--text-main); white-space:pre-wrap; line-height:1.6;">${n.texto}</div>
+                </div>`;
+            }).join('');
+        } else {
+            document.getElementById('historialNotasList').innerHTML = `
+                <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">
+                    Sin notas registradas aún.<br>
+                    <span style="font-size:12px;">Escribe en el campo de arriba y pulsa "Agregar nota".</span>
+                </div>`;
+        }
+        setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 10);
+    }
+
+    async function eliminarNota(idxReal) {
+        if (!tareaEnPanel) return;
+        if (!confirm('¿Eliminar esta nota del historial?')) return;
+        try {
+            const r = await fetch(`/api/tareas/${tareaEnPanel}/notas/${idxReal}`, { method: 'DELETE' });
+            if (r.ok) {
+                const res = await r.json();
+                renderizarHistorialNotas(res.historial_notas);
+                const idx = tareas.findIndex(t => t.id === tareaEnPanel);
+                if (idx >= 0) tareas[idx].historial_notas = res.historial_notas;
+            } else {
+                const err = await r.json();
+                alert(err.error || 'Error al eliminar la nota');
+            }
+        } catch (e) { console.error(e); alert('Error de conexión'); }
+    }
+
+    async function agregarNota() {
+        if (!tareaEnPanel) return;
+        const texto = document.getElementById('nuevaNota').value.trim();
+        if (!texto) { alert('Escribe algo en el campo de nota antes de agregar.'); return; }
+
+        try {
+            const r = await fetch(`/api/tareas/${tareaEnPanel}/notas`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto })
+            });
+            if (r.ok) {
+                const res = await r.json();
+                document.getElementById('nuevaNota').value = '';
+                renderizarHistorialNotas(res.historial_notas);
+                // Actualizar también el array local
+                const idx = tareas.findIndex(t => t.id === tareaEnPanel);
+                if (idx >= 0) tareas[idx].historial_notas = res.historial_notas;
+            } else {
+                const err = await r.json();
+                alert(err.error || 'Error al agregar la nota');
+            }
+        } catch (e) { console.error(e); alert('Error de conexión'); }
+    }
+
+    // --- Delegación ---
+    function abrirDialogDelegar() {
+        if(!tareaEnPanel) return;
+        document.getElementById('delegado_motivo').value = '';
+        document.getElementById('dialogDelegar').showModal();
+    }
+
+    async function ejecutarDelegacion() {
+        const t = tareas.find(x => x.id === tareaEnPanel);
+        const a = document.getElementById('delegado_a').value;
+        const motivo = document.getElementById('delegado_motivo').value;
+        if(!a || a === t.encargado_actual) { alert('Seleccione otro encargado'); return; }
+
+        try {
+            const r = await fetch(`/api/tareas/${t.id}/delegar`, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({delegado_de: t.encargado_actual, delegado_a: a, motivo})
+            });
+            if(r.ok) {
+                document.getElementById('dialogDelegar').close();
+                abrirPanelVer(t.id); // Recargar panel
+            }
+        } catch(e){}
+    }
+
+    // --- Encargados (Mini CRUD en Dialog) ---
+    async function cargarListaEncargados() {
+        const cont = document.getElementById('listaEncargados');
+        cont.innerHTML = encargados.map(e => `
+            <div style="display:flex;justify-content:space-between;padding:8px;background:var(--bg-app);border:1px solid var(--border-color);border-radius:6px;">
+                <div><strong>${e.nombre}</strong> <span style="color:var(--text-muted);font-size:12px;">${e.email||''}</span></div>
+                <div style="display:flex;gap:4px;">
+                    <button class="btn-secondary" style="padding:2px 6px;font-size:11px;" onclick="editarEncargado(${e.id})">Editar</button>
+                    <button class="btn-danger" style="padding:2px 6px;font-size:11px;" onclick="eliminarEncargado(${e.id})">Del</button>
+                </div>
+            </div>
+        `).join('');
+        setTimeout(() => { if (window.lucide) window.lucide.createIcons(); }, 10);
+    }
+
+    function editarEncargado(id) {
+        const e = encargados.find(x => x.id === id);
+        if(!e) return;
+        document.getElementById('encargadoEditId').value = id;
+        document.getElementById('encargado_nombre').value = e.nombre;
+        document.getElementById('encargado_email').value = e.email || '';
+        document.getElementById('encargadoTitle').textContent = 'Editar Miembro';
+        document.getElementById('dialogCrearEncargado').showModal();
+    }
+
+    async function guardarEncargado() {
+        const id = document.getElementById('encargadoEditId').value;
+        const nombre = document.getElementById('encargado_nombre').value;
+        const email = document.getElementById('encargado_email').value;
+        if(!nombre) return;
+
+        const url = id ? `/api/encargados/${id}` : '/api/encargados';
+        const method = id ? 'PUT' : 'POST';
+        
+        try {
+            await fetch(url, {method, headers:{'Content-Type':'application/json'}, body:JSON.stringify({nombre, email})});
+            document.getElementById('dialogCrearEncargado').close();
+            await cargarEncargados();
+            cargarListaEncargados();
+        } catch(e){}
+    }
+
+    async function eliminarEncargado(id) {
+        if(!confirm('¿Eliminar miembro?')) return;
+        try {
+            await fetch(`/api/encargados/${id}`, {method:'DELETE'});
+            await cargarEncargados();
+            cargarListaEncargados();
+        } catch(e){}
+    }
+
+    // --- Export/Import ---
+    function exportarTareas() { window.location.href = '/api/tareas/exportar'; }
+    async function importarTareas(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const fd = new FormData(); fd.append('archivo', file);
+        try {
+            const r = await fetch('/api/tareas/importar', {method:'POST', body:fd});
+            const res = await r.json();
+            alert(res.mensaje || 'Importado con éxito');
+            cargarTareas(); cargarEncargados();
+        } catch(e){ alert('Error al importar'); }
+        e.target.value = '';
+    }
+</script>
 </body>
 </html>
-

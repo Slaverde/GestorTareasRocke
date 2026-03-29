@@ -1,42 +1,47 @@
-# Gestor de Tareas Comerciales - D&F
+# Gestor de Tareas - Rocket
 
-Sistema de gestión de tareas comerciales basado en la estructura del Excel "D&F - Tareas Comerciales Pendientes.xlsx". Permite crear, editar, eliminar y delegar tareas de forma 1 a 1, manteniendo un historial completo de todas las delegaciones.
+Sistema web para gestión de tareas comerciales. Permite crear, editar, eliminar y delegar tareas, con historial de delegaciones, vistas Kanban/lista/roadmap e informes.
 
-## Características
+## Stack
 
-- ✅ Crear, editar y eliminar tareas
-- ✅ Delegación de tareas de 1 a 1 (una persona a otra)
-- ✅ Historial completo de delegaciones
-- ✅ Filtros por estado, encargado y búsqueda de texto
-- ✅ Vista de tarjetas y vista de lista compacta
-- ✅ Línea de tiempo tipo roadmap
-- ✅ Interfaz moderna y responsive
-- ✅ Base de datos SQLite para persistencia
-
-## Instalación Local
-
-1. Instalar dependencias:
-```bash
-pip install -r requirements.txt
-```
-
-2. Ejecutar la aplicación:
-```bash
-python app.py
-```
-
-3. Abrir en el navegador:
-```
-http://localhost:5000
-```
-
-## Despliegue
-
-Ver `DEPLOY.md` para instrucciones detalladas de despliegue en Railway, Render u otros servicios.
-
-## Tecnologías
-
-- **Backend:** Flask (Python)
-- **Base de Datos:** SQLite con SQLAlchemy
+- **Backend:** Flask + Flask-SQLAlchemy + Flask-SocketIO
 - **Frontend:** HTML5, CSS3, JavaScript (Vanilla)
-- **Servidor:** Gunicorn (producción)
+- **Base de datos:** PostgreSQL en producción (Neon), SQLite en local
+- **Hosting:** Vercel (serverless WSGI)
+
+## Variables de entorno requeridas
+
+Copia `.env.example` como `.env` y completa los valores:
+
+```
+DATABASE_URL=postgresql://usuario:contraseña@host:5432/nombre_bd
+SECRET_KEY=clave-secreta-larga-y-aleatoria
+```
+
+En Vercel, agrega estas variables desde **Project → Settings → Environment Variables**.
+
+## Desarrollo local
+
+```bash
+python -m venv venv
+venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+python app.py
+# Abre http://localhost:5000
+```
+
+Sin `DATABASE_URL`, la app usa SQLite automáticamente (`instance/tareas.db`).
+
+## Despliegue en Vercel
+
+```bash
+npx vercel deploy
+```
+
+El proyecto ya está vinculado al proyecto `gestor-tareas-rocke` en Vercel.
+URL de producción: https://gestor-tareas-rocke.vercel.app
+
+## Base de datos en producción
+
+Ver sección **Recomendaciones de base de datos** más abajo, o conecta directamente
+desde el panel de Vercel → Integrations → Neon.

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informes - Gestor de Tareas Comerciales</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 15px;
+            color: #2C2C2C;
+            font-size: 14px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #495057;
+        }
+
+        header h1 {
+            color: #495057;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #6D28D9;
+            color: white;
+        }
+
+        .btn:hover {
+            background: #5B21B6;
+        }
+
+        /* Tarjetas de KPI */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .kpi-card h3 {
+            font-size: 0.8em;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 400;
+        }
+
+        .kpi-card .valor {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .kpi-card .valor.positivo {
+            color: #28a745;
+        }
+
+        .kpi-card .valor.negativo {
+            color: #dc3545;
+        }
+
+        .kpi-card .valor.neutro {
+            color: #4B0082;
+        }
+
+        /* Grid principal */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .dashboard-card h2 {
+            color: #495057;
+            font-size: 1em;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-top: 15px;
+        }
+
+        /* Lista de tareas atrasadas */
+        .tareas-lista {
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        .tarea-item {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tarea-item:last-child {
+            border-bottom: none;
+        }
+
+        .tarea-item:hover {
+            background: #f8f9fa;
+        }
+
+        .tarea-info {
+            flex: 1;
+        }
+
+        .tarea-info strong {
+            color: #495057;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.9em;
+        }
+
+        .tarea-info small {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.7em;
+            font-weight: 600;
+        }
+
+        .badge.atraso {
+            background: #dc3545;
+            color: white;
+        }
+
+        .badge.en-proceso {
+            background: #FF6600;
+            color: white;
+        }
+
+        .badge.pendiente {
+            background: #ffc107;
+            color: #000;
+        }
+
+        /* Tabla de estadísticas */
+        .stats-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stats-table th {
+            background: #495057;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 0.85em;
+        }
+
+        .stats-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.85em;
+        }
+
+        .stats-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .numero {
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Informes y Estadísticas</h1>
+            <a href="/" class="btn">← Volver a Tareas</a>
+        </header>
+
+        <!-- Tarjetas de KPI -->
+        <div class="kpi-grid" id="kpiCards">
+            <div class="loading">Cargando estadísticas...</div>
+        </div>
+
+        <!-- Grid principal -->
+        <div class="dashboard-grid">
+            <!-- Tareas atrasadas -->
+            <div class="dashboard-card">
+                <h2>⚠️ Tareas Atrasadas</h2>
+                <div class="tareas-lista" id="tareasAtrasadas">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- Distribución por estado -->
+            <div class="dashboard-card">
+                <h2>📈 Distribución por Estado</h2>
+                <div class="chart-container">
+                    <canvas id="chartEstado"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Segunda fila -->
+        <div class="dashboard-grid">
+            <!-- Quién tiene más tareas -->
+            <div class="dashboard-card">
+                <h2>👥 Tareas por Encargado</h2>
+                <div class="chart-container">
+                    <canvas id="chartEncargados"></canvas>
+                </div>
+            </div>
+
+            <!-- Top 5: Más tareas completadas -->
+            <div class="dashboard-card">
+                <h2>🏆 Top 5: Más Tareas Completadas</h2>
+                <div class="tareas-lista" id="topCompletadas">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tercera fila -->
+        <div class="dashboard-grid">
+            <!-- Quién va más atrasado -->
+            <div class="dashboard-card">
+                <h2>⚠️ Quién Va Más Atrasado</h2>
+                <div class="tareas-lista" id="masAtrasados">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+
+            <!-- Quién tiene más tareas actualmente -->
+            <div class="dashboard-card">
+                <h2>📋 Quién Tiene Más Tareas Actualmente</h2>
+                <div class="tareas-lista" id="masTareasActuales">
+                    <div class="loading">Cargando...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cuarta fila - Tabla completa -->
+        <div class="dashboard-card" style="margin-top: 20px;">
+            <h2>📊 Estadísticas Detalladas por Encargado</h2>
+            <div style="overflow-x: auto;">
+                <table class="stats-table" id="tablaEstadisticas">
+                    <thead>
+                        <tr>
+                            <th>Encargado</th>
+                            <th class="numero">Total</th>
+                            <th class="numero">Finalizadas</th>
+                            <th class="numero">En Proceso</th>
+                            <th class="numero">Pendientes</th>
+                            <th class="numero">Atrasadas</th>
+                            <th class="numero">Canceladas</th>
+                            <th class="numero">% Completado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        <tr><td colspan="8" class="loading">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chartEstado = null;
+        let chartEncargados = null;
+
+        // Cargar estadísticas
+        async function cargarEstadisticas() {
+            try {
+                console.log('Cargando estadísticas...');
+                const response = await fetch('/api/estadisticas');
+                console.log('Respuesta recibida:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+                    throw new Error(errorData.error || `Error HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Datos recibidos:', data);
+                
+                if (!data.resumen || !data.encargados) {
+                    throw new Error('Datos incompletos en la respuesta');
+                }
+                
+                renderizarKPIs(data.resumen);
+                renderizarTareasAtrasadas(data.tareas_atrasadas || []);
+                renderizarGraficoEstado(data.distribucion_estado || {});
+                renderizarGraficoEncargados(data.encargados.mas_tareas || []);
+                renderizarTopCompletadas(data.encargados.mas_finalizadas || []);
+                renderizarMasAtrasados(data.encargados.mas_atrasadas || []);
+                renderizarMasTareasActuales(data.encargados.mas_actuales || []);
+                renderizarTablaEstadisticas(data.encargados.todos || []);
+            } catch (error) {
+                console.error('Error al cargar estadísticas:', error);
+                const errorMsg = error.message || 'Error desconocido';
+                document.getElementById('kpiCards').innerHTML = `<div class="loading" style="color: #dc3545;">Error: ${errorMsg}</div>`;
+                // Mostrar error en otros contenedores también
+                document.getElementById('tareasAtrasadas').innerHTML = `<div class="loading" style="color: #dc3545;">Error al cargar</div>`;
+                document.getElementById('topCompletadas').innerHTML = `<div class="loading" style="color: #dc3545;">Error al cargar</div>`;
+                document.getElementById('masAtrasados').innerHTML = `<div class="loading" style="color: #dc3545;">Error al cargar</div>`;
+                document.getElementById('masTareasActuales').innerHTML = `<div class="loading" style="color: #dc3545;">Error al cargar</div>`;
+            }
+        }
+
+        // Renderizar tarjetas KPI
+        function renderizarKPIs(resumen) {
+            const kpiCards = document.getElementById('kpiCards');
+            kpiCards.innerHTML = `
+                <div class="kpi-card">
+                    <h3>Total de Tareas</h3>
+                    <div class="valor neutro">${resumen.total_tareas}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Tareas Finalizadas</h3>
+                    <div class="valor positivo">${resumen.finalizadas}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Tareas en Proceso</h3>
+                    <div class="valor neutro">${resumen.en_proceso}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Tareas Pendientes</h3>
+                    <div class="valor neutro">${resumen.pendientes}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Tareas Atrasadas</h3>
+                    <div class="valor negativo">${resumen.atrasadas}</div>
+                </div>
+                <div class="kpi-card">
+                    <h3>Completadas Este Mes</h3>
+                    <div class="valor positivo">${resumen.completadas_mes}</div>
+                </div>
+            `;
+        }
+
+        // Renderizar tareas atrasadas
+        function renderizarTareasAtrasadas(tareas) {
+            const container = document.getElementById('tareasAtrasadas');
+            
+            if (tareas.length === 0) {
+                container.innerHTML = '<div class="loading">No hay tareas atrasadas</div>';
+                return;
+            }
+
+            container.innerHTML = tareas.map(tarea => `
+                <div class="tarea-item">
+                    <div class="tarea-info">
+                        <strong>${tarea.numero_df || 'Sin número'}: ${tarea.tarea.substring(0, 50)}${tarea.tarea.length > 50 ? '...' : ''}</strong>
+                        <small>👤 ${tarea.encargado_actual} | Fecha fin: ${tarea.fecha_fin || 'N/A'}</small>
+                    </div>
+                    <div>
+                        <span class="badge atraso">${tarea.dias_atraso} días</span>
+                        <span class="badge ${tarea.estado.toLowerCase().replace(' ', '-')}">${tarea.estado}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar gráfico de distribución por estado
+        function renderizarGraficoEstado(distribucion) {
+            const ctx = document.getElementById('chartEstado').getContext('2d');
+            
+            if (chartEstado) {
+                chartEstado.destroy();
+            }
+
+            const labels = Object.keys(distribucion).filter(key => distribucion[key] > 0);
+            const values = labels.map(key => distribucion[key]);
+
+            if (labels.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Roboto';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            chartEstado = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: [
+                            '#28a745',
+                            '#FF6600',
+                            '#ffc107',
+                            '#dc3545'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Renderizar gráfico de encargados
+        function renderizarGraficoEncargados(encargados) {
+            const ctx = document.getElementById('chartEncargados').getContext('2d');
+            
+            if (chartEncargados) {
+                chartEncargados.destroy();
+            }
+
+            if (!encargados || encargados.length === 0) {
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Roboto';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos', ctx.canvas.width / 2, ctx.canvas.height / 2);
+                return;
+            }
+
+            chartEncargados = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: encargados.map(e => e.nombre),
+                    datasets: [{
+                        label: 'Total de Tareas',
+                        data: encargados.map(e => e.total),
+                        backgroundColor: '#4B0082',
+                        borderColor: '#5C2599',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        // Renderizar top completadas
+        function renderizarTopCompletadas(encargados) {
+            const container = document.getElementById('topCompletadas');
+            const top5 = encargados.filter(e => e.finalizadas > 0).slice(0, 5);
+            
+            if (top5.length === 0) {
+                container.innerHTML = '<div class="loading">No hay datos</div>';
+                return;
+            }
+
+            container.innerHTML = top5.map((enc, index) => `
+                <div class="tarea-item">
+                    <div class="tarea-info">
+                        <strong>${index + 1}. ${enc.nombre}</strong>
+                        <small>${enc.finalizadas} tareas finalizadas de ${enc.total} total</small>
+                    </div>
+                    <div>
+                        <span class="badge" style="background: #28a745; color: white;">${enc.finalizadas}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar más atrasados
+        function renderizarMasAtrasados(encargados) {
+            const container = document.getElementById('masAtrasados');
+            const atrasados = encargados.filter(e => e.atrasadas > 0).slice(0, 5);
+            
+            if (atrasados.length === 0) {
+                container.innerHTML = '<div class="loading">Nadie tiene tareas atrasadas</div>';
+                return;
+            }
+
+            container.innerHTML = atrasados.map((enc, index) => `
+                <div class="tarea-item">
+                    <div class="tarea-info">
+                        <strong>${index + 1}. ${enc.nombre}</strong>
+                        <small>${enc.atrasadas} tareas atrasadas de ${enc.total} total</small>
+                    </div>
+                    <div>
+                        <span class="badge atraso">${enc.atrasadas}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar más tareas actuales
+        function renderizarMasTareasActuales(encargados) {
+            const container = document.getElementById('masTareasActuales');
+            const actuales = encargados.map(e => ({
+                ...e,
+                actuales: e.en_proceso + e.pendientes
+            })).filter(e => e.actuales > 0).sort((a, b) => b.actuales - a.actuales).slice(0, 5);
+            
+            if (actuales.length === 0) {
+                container.innerHTML = '<div class="loading">No hay datos</div>';
+                return;
+            }
+
+            container.innerHTML = actuales.map((enc, index) => `
+                <div class="tarea-item">
+                    <div class="tarea-info">
+                        <strong>${index + 1}. ${enc.nombre}</strong>
+                        <small>${enc.actuales} tareas activas (${enc.en_proceso} en proceso, ${enc.pendientes} pendientes)</small>
+                    </div>
+                    <div>
+                        <span class="badge" style="background: #4B0082; color: white;">${enc.actuales}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar tabla de estadísticas
+        function renderizarTablaEstadisticas(encargados) {
+            const tbody = document.getElementById('tablaBody');
+            
+            if (encargados.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="loading">No hay datos</td></tr>';
+                return;
+            }
+
+            // Ordenar por total de tareas
+            encargados.sort((a, b) => b.total - a.total);
+
+            tbody.innerHTML = encargados.map(enc => `
+                <tr>
+                    <td><strong>${enc.nombre}</strong></td>
+                    <td class="numero">${enc.total}</td>
+                    <td class="numero" style="color: #28a745;">${enc.finalizadas}</td>
+                    <td class="numero" style="color: #FF6600;">${enc.en_proceso}</td>
+                    <td class="numero" style="color: #ffc107;">${enc.pendientes}</td>
+                    <td class="numero" style="color: #dc3545;">${enc.atrasadas}</td>
+                    <td class="numero">${enc.canceladas || 0}</td>
+                    <td class="numero">${enc.porcentaje_completado.toFixed(1)}%</td>
+                </tr>
+            `).join('');
+        }
+
+        // Cargar al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            cargarEstadisticas();
+        });
+    </script>
+</body>
+</html>
